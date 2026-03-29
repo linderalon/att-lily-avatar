@@ -21,12 +21,22 @@ Environment variables:
 import json
 import os
 import sys
+import smtplib
 import requests
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
+
+# SMTP — set these env vars (or edit the defaults below) to enable email
+SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
+SMTP_PORT = int(os.environ.get('SMTP_PORT', '587'))
+SMTP_USER = os.environ.get('SMTP_USER', '')   # sender Gmail address
+SMTP_PASS = os.environ.get('SMTP_PASS', '')   # Gmail App Password
+SMTP_FROM = os.environ.get('SMTP_FROM', SMTP_USER)
 
 LITELLM_URL  = os.environ.get('LITELLM_URL', 'http://localhost:10006/v1/chat/completions')
 LITELLM_KEY  = os.environ.get('LITELLM_API_KEY', '')
@@ -316,6 +326,161 @@ def handle_general(body):
 
 
 # =============================================================================
+# EMAIL HANDLER
+# =============================================================================
+
+def handle_send_email(body):
+    to_email = body.get('to_email', '').strip()
+    report   = body.get('report', {})
+    product  = body.get('product', 'AT&T Sales Session')
+
+    if not to_email:
+        return error_body('Missing: to_email', 'VALIDATION_ERROR')
+    if not SMTP_USER or not SMTP_PASS:
+        return error_body(
+            'SMTP not configured. Set SMTP_USER and SMTP_PASS env vars.',
+            'CONFIG_ERROR', 503
+        )
+
+    subject  = f'Your AT&T Seller Hub Session Summary — {product}'
+    html     = build_email_html(report, product, to_email)
+
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From']    = SMTP_FROM or SMTP_USER
+        msg['To']      = to_email
+        msg.attach(MIMEText(html, 'html'))
+
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASS)
+            server.sendmail(SMTP_FROM or SMTP_USER, to_email, msg.as_string())
+
+        print(f'[email] sent to {to_email}')
+        return success_body({'sent': True, 'to': to_email}, {})
+
+    except Exception as e:
+        print(f'[email] error: {e}')
+        return error_body(f'Failed to send email: {str(e)}', 'SMTP_ERROR', 500)
+
+
+def build_email_html(report, product, to_email):
+    grade     = report.get('grade', 'N/A')
+    score     = report.get('overall_score', 0)
+    summary   = report.get('summary', '')
+    strong    = report.get('strong_spots', [])
+    weak      = report.get('weak_spots', [])
+    improve   = report.get('areas_to_improve', [])
+    study     = report.get('study_suggestions', [])
+    readiness = report.get('readiness', '')
+
+    def grade_color(g):
+        if g and g[0] == 'A': return '#22c55e'
+        if g and g[0] == 'B': return '#009fdb'
+        if g and g[0] == 'C': return '#f59e0b'
+        if g and g[0] == 'D': return '#f97316'
+        return '#ef4444'
+
+    def li(items):
+        if not items:
+            return '<li style="color:#8ba3bb;font-style:italic;">None noted</li>'
+        rows = []
+        for item in items:
+            if isinstance(item, dict):
+                text = item.get('topic', '')
+                if item.get('why'):
+                    text += f' — {item["why"]}'
+            else:
+                text = str(item)
+            rows.append(f'<li style="margin-bottom:5px;color:#2d3436;">{text}</li>')
+        return ''.join(rows)
+
+    readiness_labels = {
+        'ready_to_sell': ('#dcfce7', '#15803d', '✓ Ready to Sell'),
+        'needs_review':  ('#fef9c3', '#854d0e', '⚠ Needs Review'),
+        'not_ready':     ('#fee2e2', '#b91c1c', '✗ Not Ready'),
+    }
+    r_bg, r_fg, r_label = readiness_labels.get(readiness, ('#f0f7fb', '#4a6785', readiness or ''))
+    readiness_html = (
+        f'<span style="background:{r_bg};color:{r_fg};padding:4px 14px;'
+        f'border-radius:20px;font-size:13px;font-weight:600;">{r_label}</span>'
+        if readiness else ''
+    )
+
+    color = grade_color(grade)
+
+    return f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f0f7fb;font-family:'Helvetica Neue',Arial,sans-serif;">
+<div style="max-width:600px;margin:32px auto;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 4px 28px rgba(0,48,87,0.13);">
+
+  <!-- Header -->
+  <div style="background:linear-gradient(90deg,#003057 0%,#0057b8 55%,#009fdb 100%);padding:26px 32px 22px;">
+    <div style="font-size:26px;font-weight:900;color:#fff;letter-spacing:-0.5px;">AT&amp;T</div>
+    <div style="color:rgba(255,255,255,0.82);font-size:13px;margin-top:3px;letter-spacing:0.3px;">Seller Hub &mdash; Session Report</div>
+  </div>
+
+  <!-- Hero -->
+  <div style="padding:28px 32px 20px;display:flex;align-items:flex-start;gap:22px;">
+    <div style="width:86px;height:86px;border-radius:50%;border:5px solid {color};
+                display:flex;flex-direction:column;align-items:center;justify-content:center;
+                text-align:center;flex-shrink:0;background:#fff;
+                box-shadow:0 2px 12px rgba(0,48,87,0.1);">
+      <div style="font-size:28px;font-weight:800;color:{color};line-height:1;">{grade}</div>
+      <div style="font-size:11px;color:#8ba3bb;margin-top:1px;">{score}/100</div>
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+                  color:#009fdb;margin-bottom:6px;">{product}</div>
+      <p style="margin:0 0 12px;font-size:14px;line-height:1.65;color:#2d3436;">{summary}</p>
+      {readiness_html}
+    </div>
+  </div>
+
+  <!-- Sections -->
+  <div style="padding:0 32px 28px;display:flex;flex-direction:column;gap:14px;">
+
+    <div style="background:#f0fdf4;border-left:4px solid #22c55e;border-radius:8px;padding:14px 18px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;
+                  color:#15803d;margin-bottom:9px;">&#9989; Strong Spots</div>
+      <ul style="margin:0;padding-left:18px;">{li(strong)}</ul>
+    </div>
+
+    <div style="background:#fef2f2;border-left:4px solid #ef4444;border-radius:8px;padding:14px 18px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;
+                  color:#b91c1c;margin-bottom:9px;">&#9888;&#65039; Weak Spots</div>
+      <ul style="margin:0;padding-left:18px;">{li(weak)}</ul>
+    </div>
+
+    <div style="background:#eff8fe;border-left:4px solid #009fdb;border-radius:8px;padding:14px 18px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;
+                  color:#0057b8;margin-bottom:9px;">&#128200; Areas to Improve</div>
+      <ul style="margin:0;padding-left:18px;">{li(improve)}</ul>
+    </div>
+
+    <div style="background:#f0f4f8;border-left:4px solid #003057;border-radius:8px;padding:14px 18px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;
+                  color:#003057;margin-bottom:9px;">&#128218; Study Suggestions</div>
+      <ul style="margin:0;padding-left:18px;">{li(study)}</ul>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div style="background:#f0f7fb;padding:18px 32px;text-align:center;border-top:1px solid #c9dfe9;">
+    <p style="margin:0;font-size:12px;color:#8ba3bb;">
+      Generated by AT&amp;T Seller Hub &middot; Powered by AI
+    </p>
+    <p style="margin:5px 0 0;font-size:12px;color:#8ba3bb;">Sent to {to_email}</p>
+  </div>
+
+</div>
+</body></html>"""
+
+
+# =============================================================================
 # RESPONSE HELPERS
 # =============================================================================
 
@@ -357,7 +522,9 @@ class ProxyHandler(BaseHTTPRequestHandler):
 
         mode = body.get('analysis_mode')
         try:
-            if mode == 'knowledge_check':
+            if mode == 'send_email':
+                status, resp = handle_send_email(body)
+            elif mode == 'knowledge_check':
                 status, resp = handle_knowledge_check(body)
             elif mode == 'general':
                 status, resp = handle_general(body)

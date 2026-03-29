@@ -14,6 +14,26 @@
     <link rel="stylesheet" href="hr-demo.css?v=1.0.26">
 </head>
 <body>
+
+    <!-- ── Login Screen ──────────────────────────────────────────────────── -->
+    <div id="login-screen" class="login-screen">
+        <div class="login-card">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/AT%26T_logo_2016.svg"
+                 alt="AT&T" class="login-logo">
+            <h1 class="login-title">AT&amp;T Seller Hub</h1>
+            <p class="login-subtitle">Sign in to access your AI-powered training platform</p>
+            <form class="login-form" onsubmit="handleLogin(event)" novalidate>
+                <div class="login-field">
+                    <label for="login-email">Work Email</label>
+                    <input type="email" id="login-email" placeholder="you@att.com"
+                           required autocomplete="email">
+                    <span class="login-error" id="login-error"></span>
+                </div>
+                <button type="submit" class="login-btn">Sign In &#8594;</button>
+            </form>
+        </div>
+    </div>
+
     <div class="app">
 
         <!-- Header -->
@@ -37,6 +57,10 @@
                     sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
                     style="width:100%;height:100%;border:none;border-radius:12px;"
                 ></iframe>
+                <!-- SME button — shown when trigger phrase detected in transcript -->
+                <div class="sme-overlay" id="main-sme-overlay">
+                    <button class="sme-btn" onclick="talkToSME()">&#128222; Talk to SME</button>
+                </div>
             </div>
         </div>
 
@@ -105,6 +129,9 @@
                     sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
                     style="width:100%;height:100%;border:none;"
                 ></iframe>
+                <div class="sme-overlay" id="check-sme-overlay">
+                    <button class="sme-btn" onclick="talkToSME()">&#128222; Talk to SME</button>
+                </div>
             </div>
             <div class="transcript-panel check-transcript-panel">
                 <div class="transcript-header">
@@ -206,6 +233,33 @@
     var activeCheckKey     = null;   // 'wireless' | 'fiber' | 'tv'
     var lastReportData     = null;   // for download
     var lastReportTitle    = '';
+    var userEmail          = localStorage.getItem('att_hub_email') || '';
+
+    // ─── LOGIN ───────────────────────────────────────────────────────────────
+    (function initLogin() {
+        var saved = localStorage.getItem('att_hub_email');
+        if (saved) {
+            document.getElementById('login-email').value = saved;
+        }
+    })();
+
+    function handleLogin(e) {
+        e.preventDefault();
+        var input = document.getElementById('login-email');
+        var err   = document.getElementById('login-error');
+        var email = input.value.trim();
+        if (!email || !email.includes('@')) {
+            err.textContent = 'Please enter a valid email address.';
+            input.focus();
+            return;
+        }
+        err.textContent = '';
+        userEmail = email;
+        localStorage.setItem('att_hub_email', email);
+        var screen = document.getElementById('login-screen');
+        screen.classList.add('login-fade-out');
+        setTimeout(function() { screen.style.display = 'none'; }, 380);
+    }
 
     // ─── HELPERS ─────────────────────────────────────────────────────────────
     function esc(s) {
@@ -216,6 +270,8 @@
     function timeNow() {
         return new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
     }
+    var SME_TRIGGERS = ['i need more help', 'can i speak to a subject matter expert'];
+
     function addEntry(which, role, text) {
         transcripts[which].push({ role: role, text: text, time: timeNow() });
         var content = document.getElementById(which + '-transcript-content');
@@ -230,6 +286,29 @@
         content.scrollTop = content.scrollHeight;
         var btn = document.getElementById(which + '-download-btn');
         if (btn) btn.disabled = false;
+        // Check for SME trigger phrases (user speech only)
+        if (role === 'You') checkSMETrigger(which, text);
+    }
+
+    function checkSMETrigger(which, text) {
+        var lower = text.toLowerCase();
+        var triggered = SME_TRIGGERS.some(function(phrase){ return lower.includes(phrase); });
+        if (triggered) showSMEButton(which);
+    }
+
+    function showSMEButton(which) {
+        var el = document.getElementById(which + '-sme-overlay');
+        if (el) el.style.display = 'flex';
+    }
+
+    function hideSMEButton(which) {
+        var el = document.getElementById(which + '-sme-overlay');
+        if (el) el.style.display = 'none';
+    }
+
+    function talkToSME() {
+        // Placeholder — replace the URL below with your SME meeting link or routing logic
+        alert('Connecting you to a Subject Matter Expert...\n\nReplace this with your SME routing URL or contact flow.');
     }
     function downloadTranscript(which) {
         var lines = transcripts[which].map(function(e){ return '['+e.time+'] '+e.role+': '+e.text; });
@@ -250,12 +329,13 @@
         var badge = document.getElementById('check-modal-badge');
         badge.textContent = check.badge;
         badge.className   = 'product-badge ' + check.badgeClass;
-        // Reset transcript
+        // Reset transcript + SME button
         transcripts.check = [];
         var c = document.getElementById('check-transcript-content');
         c.innerHTML = '<div class="transcript-empty">Transcript will appear here once the session begins...</div>';
         var btn = document.getElementById('check-download-btn');
         if (btn) btn.disabled = true;
+        hideSMEButton('check');
         pendingPrompt  = JSON.stringify(check.dpp);
         activeCheckKey = product;
         iframe.src     = CHECK_AVATAR_URL;
@@ -321,6 +401,7 @@
                 if (result.success) {
                     lastReportData = result.summary;
                     showReport(source, result.summary);
+                    if (userEmail) sendSummaryEmail(result.summary, source);
                 } else {
                     alert('Report generation failed: ' + result.error);
                 }
@@ -467,6 +548,32 @@
         a.download = 'att-report-'+new Date().toISOString().slice(0,10)+'.txt';
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    }
+
+    // ─── EMAIL SUMMARY ───────────────────────────────────────────────────────
+    function sendSummaryEmail(report, source) {
+        var product = (source === 'check' && activeCheckKey)
+            ? CHECKS[activeCheckKey].dpp.product
+            : (report.session_type || 'AT&T Sales Session');
+        fetch(PROXY_URL, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({
+                analysis_mode: 'send_email',
+                to_email: userEmail,
+                report:   report,
+                product:  product
+            })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+            if (res.success) {
+                console.log('[email] summary sent to', userEmail);
+            } else {
+                console.warn('[email] failed:', res.error);
+            }
+        })
+        .catch(function(err) { console.warn('[email] error:', err); });
     }
 
     // ─── MESSAGE HANDLER ─────────────────────────────────────────────────────

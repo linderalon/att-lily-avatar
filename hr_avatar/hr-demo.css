@@ -75,6 +75,126 @@ body {
     overflow-x: hidden;
 }
 
+/* =============================================================================
+   LOGIN SCREEN
+   ============================================================================= */
+
+.login-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(ellipse 60% 160% at -8% 55%, #009fdb 0%, #00b4e0 30%, transparent 65%),
+        radial-gradient(ellipse 60% 160% at 108% 45%, #0057b8 0%, #0075c9 30%, transparent 65%),
+        #dff0f9;
+    transition: opacity 0.38s ease;
+}
+
+.login-screen.login-fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.login-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 48px 44px 44px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0, 48, 87, 0.22);
+    text-align: center;
+}
+
+.login-logo {
+    height: 52px;
+    margin-bottom: 24px;
+}
+
+.login-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 8px;
+}
+
+.login-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0 0 32px;
+    line-height: 1.5;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    text-align: left;
+}
+
+.login-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.login-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.login-field input {
+    padding: 13px 16px;
+    border: 1.5px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    outline: none;
+}
+
+.login-field input:focus {
+    border-color: var(--accent-warm);
+    box-shadow: 0 0 0 3px rgba(0, 159, 219, 0.15);
+}
+
+.login-field input::placeholder {
+    color: var(--text-muted);
+}
+
+.login-error {
+    font-size: 12px;
+    color: #ef4444;
+    min-height: 16px;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent-warm);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.2px;
+    transition: background var(--transition-fast), transform var(--transition-fast),
+                box-shadow var(--transition-fast);
+    box-shadow: 0 4px 16px rgba(0, 159, 219, 0.35);
+}
+
+.login-btn:hover {
+    background: #007ba7;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 123, 167, 0.45);
+}
+
 /* AT&T brand top bar */
 body::before {
     content: '';
@@ -1378,6 +1498,7 @@ header p {
     flex: 1;
     overflow: hidden;
     min-height: 0;
+    position: relative;
 }
 
 /* Transcript inside the modal */
@@ -1768,4 +1889,51 @@ header p {
     .report-grid   { grid-template-columns: 1fr; }
     .report-hero   { flex-direction: column; align-items: center; text-align: center; }
     .report-meta-row { justify-content: center; }
+}
+
+/* =============================================================================
+   SME BUTTON OVERLAY
+   Floats over the avatar iframe, aligned with the Kaltura control bar row.
+   Hidden by default — shown when trigger phrase is detected in user speech.
+   ============================================================================= */
+
+.sme-overlay {
+    display: none;            /* toggled to flex by JS */
+    position: absolute;
+    bottom: 18px;             /* aligns with Kaltura's bottom control bar */
+    left: 50%;
+    transform: translateX(80px); /* sits to the right of the centred leave button */
+    z-index: 20;
+    align-items: center;
+    pointer-events: auto;
+}
+
+.sme-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 22px;
+    background: #009fdb;
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 4px 18px rgba(0, 159, 219, 0.55);
+    animation: sme-pulse 2.2s ease-in-out infinite;
+    transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.sme-btn:hover {
+    background: #007ba7;
+    transform: translateY(-2px);
+    animation: none;
+    box-shadow: 0 6px 24px rgba(0, 123, 167, 0.6);
+}
+
+@keyframes sme-pulse {
+    0%, 100% { box-shadow: 0 4px 18px rgba(0, 159, 219, 0.55); }
+    50%       { box-shadow: 0 4px 28px rgba(0, 159, 219, 0.9); }
 }
