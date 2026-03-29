@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Dependencies (if added later)
+node_modules/
+
+# Logs
+*.log
+
+# Lambda build artifacts
+hr_avatar/lambda/function.zip
+hr_avatar/lambda/.api-url
+hr_avatar/lambda/benchmark_results.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Node.js
+node_modules/
+package-lock.json

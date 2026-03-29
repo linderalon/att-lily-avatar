@@ -1,0 +1,77 @@
+{
+  "v": "2",
+  "mode": "interview",
+  "org": {
+    "n": "Amazon Web Services (AWS)",
+    "val": "We build reliable, secure, scalable cloud services with a high bar for engineering quality and ownership.",
+    "grow": "There are strong opportunities to grow in scope, technical depth, and leadership.",
+    "tone": "warm, direct, highly technical but conversational"
+  },
+  "role": {
+    "id": "AWS-SDE-ENG-01",
+    "t": "Software Development Engineer (AWS Engineering)",
+    "loc": "EMEA (Hybrid/Remote)",
+    "type": "full_time",
+    "must": [
+      "Strong programming fundamentals (data structures, algorithms, debugging)",
+      "Production-quality coding (testing, error handling, readability)",
+      "Distributed systems mindset (reliability, latency, scaling)",
+      "Security and operational ownership",
+      "Clear technical communication"
+    ],
+    "nice": [
+      "AWS service familiarity (IAM, networking, compute, storage, observability)",
+      "Performance profiling and optimization",
+      "Experience operating services on-call"
+    ]
+  },
+  "subj": {
+    "id": "cand_aws_1007",
+    "name": "Alex Chen",
+    "lang": "en",
+    "prof": {
+      "exp": "Backend engineer (5y). Built APIs and event-driven services; hands-on with testing and incident response.",
+      "cv_summary": "Recent work includes building a rate-limited API gateway, a queue-driven worker system, and a metrics/alerting pipeline. Comfortable with Python/Java and production operations.",
+      "notes": [
+        "Prioritize a code walkthrough early; probe operational ownership and reliability tradeoffs."
+      ]
+    }
+  },
+  "mtg": {
+    "mins": 5,
+    "focus": [
+      "code comprehension",
+      "engineering judgment",
+      "reliability and ownership",
+      "debugging"
+    ],
+    "q_add": [
+      "Most important: Please share your screen and open a code sample you wrote (preferably production or a realistic side project). Walk me through what it does and why you designed it that way.",
+      "As you walk through it: explain how you handle errors, retries, edge cases, and input validation. Show tests (or explain your testing strategy if tests aren’t in the repo).",
+      "Pick one concrete function/module and refactor it live for readability or robustness (small change is fine). Talk through tradeoffs.",
+      "Tell me about one production incident related to similar code: what happened, how you diagnosed it, what you changed to prevent recurrence."
+    ],
+    "style": "After brief intro, move quickly to screen-share/code walkthrough. One question at a time."
+  },
+  "eval": {
+    "tag": "INTERNAL_EVALUATION",
+    "dims": [
+      { "id": "code", "name": "Code Quality & Craft", "a1": "Hard to explain; weak structure/tests", "a3": "Solid, readable, some tests/edge cases", "a5": "Clean design, strong testing, great tradeoffs" },
+      { "id": "debug", "name": "Debugging & Problem Solving", "a1": "Guessing; no method", "a3": "Reasonable method; finds issues", "a5": "Fast, structured diagnosis; strong hypotheses" },
+      { "id": "dist", "name": "Distributed Systems Judgment", "a1": "Ignores reliability/latency", "a3": "Basic reliability awareness", "a5": "Strong reliability/scaling tradeoffs + mitigations" },
+      { "id": "ops", "name": "Operational Ownership", "a1": "Avoids ownership", "a3": "Understands monitoring/on-call basics", "a5": "Proactive observability, prevention, postmortems" },
+      { "id": "comms", "name": "Technical Communication", "a1": "Unclear/rambling", "a3": "Clear enough", "a5": "Crisp, structured, teaches while explaining" }
+    ]
+  },
+  "case": { "talk": [], "log": {}, "hr": {} },
+  "limits": {
+    "max_q": 3,
+    "ban": ["age", "religion", "medical", "family status", "national origin (non-job related)"],
+    "escal": ["self-harm", "violence"]
+  },
+  "inst": [
+    "Do not ask for proprietary/confidential code. If they mention it, ask for a sanitized or personal project sample.",
+    "If screen share is not possible: ask them to paste a short snippet (30–80 lines) and walk through it.",
+    "Keep evaluation hidden; focus on evidence and concrete examples."
+  ]
+}

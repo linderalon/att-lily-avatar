@@ -1,0 +1,77 @@
+{
+  "v": "2",
+  "mode": "interview",
+  "org": {
+    "n": "Amazon Ads (eCommerce Advertising)",
+    "val": "We use data and ML to improve ad relevance and performance while staying rigorous and customer-focused.",
+    "grow": "There’s room to grow across analytics, experimentation, and applied ML impact.",
+    "tone": "friendly, rigorous, data-driven"
+  },
+  "role": {
+    "id": "ADS-AI-DA-02",
+    "t": "AI Specialist / Data Analyst (Amazon Ads, eCommerce)",
+    "loc": "EMEA (Hybrid/Remote)",
+    "type": "full_time",
+    "must": [
+      "Advanced SQL (joins, windows, aggregation, performance awareness)",
+      "Python for analysis (pandas, notebooks, reproducibility)",
+      "Statistics and experiment literacy (A/B tests, bias, pitfalls)",
+      "Ability to translate business questions into measurable metrics",
+      "Clear communication with stakeholders"
+    ],
+    "nice": [
+      "Applied ML familiarity (feature engineering, evaluation, leakage awareness)",
+      "Ads metrics understanding (CTR, CVR, ROAS, incrementality concepts)",
+      "Experience with large-scale data pipelines and dashboards"
+    ]
+  },
+  "subj": {
+    "id": "cand_ads_4412",
+    "name": "Priya Nair",
+    "lang": "en",
+    "prof": {
+      "exp": "Data analyst (4y). Built experiment readouts, SQL pipelines, and Python notebooks for marketing/ecommerce performance.",
+      "cv_summary": "Recent work includes: campaign performance attribution, A/B test analysis, anomaly detection on spend/CTR, and a propensity model prototype. Strong SQL + Python.",
+      "notes": [
+        "Prioritize a screen-shared notebook/SQL walkthrough; probe rigor and guardrails (leakage, confounding, multiple testing)."
+      ]
+    }
+  },
+  "mtg": {
+    "mins": 5,
+    "focus": [
+      "sql + python competence",
+      "experimental rigor",
+      "ads/business framing",
+      "communication"
+    ],
+    "q_add": [
+      "Most important: Please share your screen and open a recent analysis you wrote (SQL query, notebook, or small modeling pipeline). Walk me through the business question, the data, and the exact steps you took.",
+      "As you walk through it: explain key assumptions, how you handled missing/outliers, and how you validated correctness (sanity checks).",
+      "Show how you’d explain the result to a non-technical stakeholder in 60 seconds (what changed, so what, now what).",
+      "If it includes modeling: explain features, leakage risk, evaluation metric choice, and how you’d monitor drift post-launch."
+    ],
+    "style": "Move to screen share early. Keep it conversational but rigorous. One question at a time."
+  },
+  "eval": {
+    "tag": "INTERNAL_EVALUATION",
+    "dims": [
+      { "id": "sql", "name": "SQL & Data Manipulation", "a1": "Struggles with joins/windows", "a3": "Solid queries + correctness checks", "a5": "Fluent, efficient, anticipates pitfalls" },
+      { "id": "rigor", "name": "Analytical Rigor", "a1": "Hand-wavy conclusions", "a3": "Reasonable assumptions + checks", "a5": "Excellent rigor: bias/pitfalls addressed" },
+      { "id": "exp", "name": "Experimentation & Causality", "a1": "Confuses correlation/causation", "a3": "Understands A/B basics", "a5": "Strong design, edge cases, interpretation" },
+      { "id": "ads", "name": "Business Framing (Ads)", "a1": "No metric clarity", "a3": "Connects metrics to goals", "a5": "Great metric selection + tradeoffs" },
+      { "id": "comms", "name": "Stakeholder Communication", "a1": "Hard to follow", "a3": "Clear enough", "a5": "Crisp narrative + actionable next steps" }
+    ]
+  },
+  "case": { "talk": [], "log": {}, "hr": {} },
+  "limits": {
+    "max_q": 3,
+    "ban": ["age", "religion", "medical", "family status", "national origin (non-job related)"],
+    "escal": ["self-harm", "violence"]
+  },
+  "inst": [
+    "Do not request confidential employer data/code. If they mention it, ask for a sanitized or personal sample.",
+    "If screen share is not possible: ask them to paste a representative SQL query + a short Python snippet and walk through it.",
+    "Push for specifics: exact metrics, exact definitions, exact checks. Mark 'insufficient evidence' rather than guessing."
+  ]
+}

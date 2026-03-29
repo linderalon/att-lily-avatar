@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Interview POC - AI Pair Programming</title>
+
+    <!-- Cache Control -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Favicon (suppress 404) -->
+    <link rel="icon" href="data:,">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="code-interview.css?v=1.5.6">
+</head>
+<body>
+    <div class="app">
+        <!-- ============================================================
+             SCREEN 1: OPENING / REGISTRATION
+             ============================================================ -->
+        <div id="opening-screen" class="screen opening-screen" style="display: flex;">
+            <div class="opening-container">
+                <div class="opening-header">
+                    <h1>AI Pair Programming Interview</h1>
+                    <p>Practice coding with an AI assistant that sees your work in real-time</p>
+                </div>
+
+                <form id="registration-form" class="registration-form" novalidate>
+                    <div class="form-group">
+                        <label for="first-name">First Name <span class="required">*</span></label>
+                        <input type="text" id="first-name" name="firstName" required autocomplete="given-name" placeholder="Enter your first name">
+                        <span class="error-message" id="first-name-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="last-name">Last Name <span class="required">*</span></label>
+                        <input type="text" id="last-name" name="lastName" required autocomplete="family-name" placeholder="Enter your last name">
+                        <span class="error-message" id="last-name-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email <span class="required">*</span></label>
+                        <input type="email" id="email" name="email" required autocomplete="email" placeholder="Enter your email address">
+                        <span class="error-message" id="email-error"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-start" id="start-btn">
+                        Start Peer-Programming Interview
+                    </button>
+                </form>
+
+                <div class="opening-footer">
+                    <p>You will solve coding challenges while the AI assistant observes and provides guidance.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             SCREEN 2: INTERVIEW (Avatar + Code Editor)
+             ============================================================ -->
+        <div id="interview-screen" class="screen interview-screen" style="display: none;">
+            <!-- Header -->
+            <header>
+                <div class="header-content">
+                    <div class="header-left">
+                        <h1>AI Pair Programming</h1>
+                        <p>Code with an AI assistant that sees your work in real-time</p>
+                    </div>
+                    <div class="header-right">
+                        <span class="user-badge" id="user-badge"></span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Layout: Avatar | Problem & Code -->
+            <div class="main-container">
+                <!-- Left: Avatar -->
+                <div class="avatar-panel">
+                    <div id="avatar-container">
+                        <div class="loading-state" id="loading-state">
+                            <div class="spinner"></div>
+                            <p>Initializing AI assistant...</p>
+                        </div>
+                    </div>
+                    <div class="avatar-status">
+                        <span class="status-dot" id="status-dot"></span>
+                        <span id="status-text">Connecting...</span>
+                    </div>
+                </div>
+
+                <!-- Right: Problem & Editor -->
+                <div class="coding-panel">
+                    <!-- Problem Description -->
+                    <div class="problem-section">
+                        <div class="problem-header">
+                            <h2 id="problem-title">Two Sum</h2>
+                            <span class="difficulty easy" id="problem-difficulty">Easy</span>
+                        </div>
+                        <div class="problem-description" id="problem-description">
+                            <p>Given an array of integers <code>nums</code> and an integer <code>target</code>, return indices of the two numbers such that they add up to <code>target</code>.</p>
+                            <p>You may assume that each input would have exactly one solution, and you may not use the same element twice.</p>
+                            <p>You can return the answer in any order.</p>
+                            <div class="example">
+                                <strong>Example:</strong>
+                                <pre>Input: nums = [2,7,11,15], target = 9
+Output: [0,1]
+Explanation: nums[0] + nums[1] = 2 + 7 = 9</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Language Selector -->
+                    <div class="editor-toolbar">
+                        <select id="language-select">
+                            <option value="python">Python</option>
+                            <option value="javascript">JavaScript</option>
+                        </select>
+                        <div class="toolbar-actions">
+                            <button class="btn btn-run" id="run-btn">
+                                <span>▶</span> Run Code
+                            </button>
+<button class="btn btn-reset" id="reset-btn">
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Monaco Editor Container -->
+                    <div id="editor-container"></div>
+
+                    <!-- Output Panel -->
+                    <div class="output-panel">
+                        <div class="output-header">
+                            <h3>Output</h3>
+                            <span class="test-results" id="test-results"></span>
+                        </div>
+                        <pre class="output-content" id="output-content">Click "Run Code" to execute your solution...</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debug Panel (collapsible) -->
+            <details class="debug-panel">
+                <summary>Debug: Last DPP Injection</summary>
+                <pre id="debug-dpp"></pre>
+            </details>
+        </div>
+
+        <!-- ============================================================
+             SCREEN 3: END / REPORT
+             ============================================================ -->
+        <div id="end-screen" class="screen end-screen" style="display: none;">
+            <div class="end-container">
+                <div class="end-header">
+                    <h1>Session Complete</h1>
+                    <p id="end-user-name">Thank you for completing the interview</p>
+                </div>
+
+                <!-- Report content will be injected here -->
+                <div id="report-content" class="report-content">
+                    <div class="analyzing-state">
+                        <div class="spinner"></div>
+                        <p>Analyzing your session...</p>
+                    </div>
+                </div>
+
+                <div class="end-actions">
+                    <button class="btn btn-secondary" id="download-report-btn" style="display: none;">
+                        Download Report (JSON)
+                    </button>
+                    <button class="btn btn-primary" id="restart-btn">
+                        Start New Interview
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kaltura Avatar SDK (load before Monaco to avoid AMD loader conflicts) -->
+    <script src="../kaltura-avatar-sdk.js?v=1.5.1"></script>
+
+    <!-- Monaco Editor from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+
+    <!-- Main Application -->
+    <script src="code-interview.js?v=1.5.7"></script>
+</body>
+</html>

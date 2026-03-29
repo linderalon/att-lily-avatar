@@ -1,0 +1,12 @@
+{
+  "v": "2",
+  "mode": "interview",
+  "org": { "n": "Acme Logistics", "val": "Dispatch is the nerve center of reliable delivery and clear communication.", "grow": "We promote from within.", "tone": "calm, structured, friendly" },
+  "role": { "id": "ACME-DISP-001", "t": "Dispatch Coordinator", "loc": "Porto, PT", "type": "full_time", "shift": "Shift-based; occasional weekends", "must": ["Clear phone communication", "Handles pressure", "Basic computer proficiency"] },
+  "subj": { "id": "cand_008114", "name": "Miguel Pereira", "lang": "en", "prof": { "exp": "2y retail customer service; handled escalations and time-sensitive tasks.", "notes": ["Push for triage + de-escalation STAR story"] } },
+  "mtg": { "mins": 5, "focus": ["triage", "communication"], "q_add": ["Ask how they prioritize 3 urgent issues at once."] },
+  "eval": { "tag": "INTERNAL_EVALUATION", "dims": [{ "id": "triage", "name": "Prioritization", "a1": "No plan", "a3": "Basic plan", "a5": "Structured triage + rationale" }, { "id": "comms", "name": "Communication", "a1": "Unclear", "a3": "Clear enough", "a5": "Crisp + empathetic" }] },
+  "case": { "talk": [], "log": {}, "hr": {} },
+  "limits": { "max_q": 2, "ban": ["age", "religion", "medical"], "escal": ["self-harm", "violence"] },
+  "inst": ["If the candidate rambles, politely steer back."]
+}

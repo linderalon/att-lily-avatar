@@ -1,0 +1,32 @@
+{
+  "name": "kaltura-avatar-sdk",
+  "version": "1.0.0",
+  "description": "Kaltura Avatar SDK - Embed AI avatar conversations in any website",
+  "main": "kaltura-avatar-sdk.js",
+  "scripts": {
+    "test": "npm run test:hr && npm run test:code",
+    "test:hr": "node hr_avatar/test-e2e.js",
+    "test:code": "node code_interview/test-e2e.js",
+    "test:install": "npx playwright install chromium"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zoharbabin/kaltura-avatar-sdk.git"
+  },
+  "keywords": [
+    "avatar",
+    "ai",
+    "kaltura",
+    "sdk",
+    "conversation"
+  ],
+  "author": "Zohar Babin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zoharbabin/kaltura-avatar-sdk/issues"
+  },
+  "homepage": "https://github.com/zoharbabin/kaltura-avatar-sdk#readme",
+  "devDependencies": {
+    "playwright": "^1.58.2"
+  }
+}

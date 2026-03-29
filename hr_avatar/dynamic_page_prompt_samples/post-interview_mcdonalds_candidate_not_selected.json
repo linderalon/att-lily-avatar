@@ -1,0 +1,20 @@
+{
+  "v": "2",
+  "mode": "post_interview",
+  "org": { "n": "McDonald's", "tone": "kind, clear, brief" },
+  "role": { "id": "MCD-CREW-001", "t": "Crew Member", "loc": "Orlando, FL", "type": "part_time", "shift": "Evenings + weekends" },
+  "subj": { "id": "cand_22019", "name": "Taylor Roberts", "lang": "en" },
+  "mtg": { "mins": 5, "style": "Warm tone, short call." },
+  "eval": { "tag": "INTERNAL_OUTCOME_NOTE", "dims": [] },
+  "case": {
+    "type": "Other",
+    "talk": [
+      "Thanks again for interviewing. We’ve decided to move forward with other candidates for this role.",
+      "I can share job-related feedback to help you going forward.",
+      "For this role, we prioritized full evening and weekend availability and strong examples of speed, accuracy, and calm customer handling under pressure."
+    ],
+    "hr": { "name": "Hiring Team", "chan": "careers portal message" }
+  },
+  "limits": { "max_q": 2 },
+  "inst": ["Do not compare them to other candidates.", "If pressed for details, repeat only approved job-related feedback."]
+}

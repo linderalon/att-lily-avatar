@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "kaltura:dpp:ctx:v2",
+  "title": "Kaltura Dynamic Page Prompt Context (v2, unified)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "mode", "org", "role", "subj"],
+  "properties": {
+    "v": { "type": "string", "enum": ["2"] },
+
+    "mode": {
+      "type": "string",
+      "enum": ["interview", "post_interview", "separation"],
+      "description": "Controls which flow the avatar runs. Schema shape stays identical for all modes."
+    },
+
+    "org": { "$ref": "#/$defs/org" },
+    "role": { "$ref": "#/$defs/role" },
+    "subj": { "$ref": "#/$defs/subj" },
+
+    "mtg": {
+      "$ref": "#/$defs/mtg",
+      "description": "Meeting config used in BOTH modes (duration, focus, extra questions, style notes)."
+    },
+
+    "eval": {
+      "$ref": "#/$defs/eval",
+      "description": "Evaluation config used in BOTH modes (interview uses it heavily; separation can omit/leave empty)."
+    },
+
+    "case": {
+      "$ref": "#/$defs/case",
+      "description": "Case/outcome config used in BOTH modes (separation uses it heavily; interview can omit/leave empty)."
+    },
+
+    "limits": { "$ref": "#/$defs/limits" },
+    "inst": { "$ref": "#/$defs/inst" }
+  },
+
+  "$defs": {
+    "org": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["n"],
+      "properties": {
+        "n": { "type": "string", "description": "Company name" },
+        "intro": { "type": "string", "description": "Short intro line(s) the avatar can say" },
+        "val": { "type": "string", "description": "Value statement relevant to the role" },
+        "grow": { "type": "string", "description": "Growth/opportunity statement" },
+        "tone": { "type": "string", "description": "Voice style hint (e.g., warm, direct, professional)" }
+      }
+    },
+
+    "role": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["t"],
+      "properties": {
+        "id": { "type": "string" },
+        "t": { "type": "string", "description": "Role title" },
+        "loc": { "type": "string" },
+        "type": { "type": "string" },
+        "shift": { "type": "string" },
+        "must": { "type": "array", "items": { "type": "string" } },
+        "nice": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "subj": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "description": "Candidate/employee display name" },
+        "lang": { "type": "string", "description": "Preferred language (optional)" },
+
+        "prof": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Job-relevant profile (safe to share with the avatar).",
+          "properties": {
+            "cv_summary": { "type": "string", "description": "Raw CV/resume text blob (can be pasted as-is)." },
+            "lic": { "type": "string", "description": "License type (if relevant)" },
+            "drive_y": { "type": "number", "minimum": 0 },
+            "exp": { "type": "string", "description": "Short experience summary" },
+            "veh": { "type": "array", "items": { "type": "string" } },
+            "notes": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    },
+
+    "mtg": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mins": { "type": "integer", "minimum": 3, "maximum": 90 },
+        "focus": { "type": "array", "items": { "type": "string" } },
+        "q_add": { "type": "array", "items": { "type": "string" } },
+        "style": { "type": "string", "description": "Session style nudge (e.g., 'no small talk', 'brisk pace')" }
+      }
+    },
+
+    "eval": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tag": { "type": "string", "description": "Internal block tag (e.g., INTERNAL_EVALUATION)" },
+        "dims": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/dim" }
+        }
+      }
+    },
+
+    "dim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "a1": { "type": "string" },
+        "a3": { "type": "string" },
+        "a5": { "type": "string" }
+      }
+    },
+
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["Layoff", "Performance", "Misconduct", "Other"] },
+        "eff": { "type": "string", "format": "date" },
+        "imm": { "type": "boolean" },
+
+        "talk": {
+          "type": "array",
+          "description": "Approved spoken talking points (exact phrases).",
+          "items": { "type": "string" }
+        },
+
+        "log": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "pay": { "type": "string" },
+            "ben": { "type": "string" },
+            "prop": { "type": "string" },
+            "access": { "type": "string" },
+            "verify": { "type": "string" },
+            "bel": { "type": "string" }
+          }
+        },
+
+        "hr": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string" },
+            "chan": { "type": "string" },
+            "appeal": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_q": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "ban": { "type": "array", "items": { "type": "string" } },
+        "escal": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "inst": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

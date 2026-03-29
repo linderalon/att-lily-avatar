@@ -1,0 +1,46 @@
+{
+  "v": "2",
+  "mode": "interview",
+  "org": {
+    "n": "McDonald's",
+    "val": "Great service means fast, friendly, accurate, and safe—especially during rush.",
+    "grow": "There are opportunities to learn stations, take on more responsibility, and grow.",
+    "tone": "friendly, brisk, practical"
+  },
+  "role": {
+    "id": "MCD-CREW-001",
+    "t": "Crew Member",
+    "loc": "Orlando, FL",
+    "type": "part_time",
+    "shift": "Evenings + weekends",
+    "must": ["Reliable attendance", "Customer-facing professionalism", "Follows procedures and food safety"],
+    "nice": ["Cash handling", "Fast-paced service experience"]
+  },
+  "subj": {
+    "id": "cand_22019",
+    "name": "Taylor Roberts",
+    "lang": "en",
+    "prof": {
+      "exp": "1y retail; first quick-service role.",
+      "notes": ["Probe rush-hour handling", "Ask for a STAR story about a difficult customer"]
+    }
+  },
+  "mtg": {
+    "mins": 5,
+    "focus": ["customer service", "reliability", "calm under pressure"],
+    "q_add": ["Ask how they keep accuracy when multitasking.", "Ask about schedule constraints (availability only)."],
+    "style": "Keep it upbeat and simple. One question at a time."
+  },
+  "eval": {
+    "tag": "INTERNAL_EVALUATION",
+    "dims": [
+      { "id": "reliability", "name": "Reliability", "a1": "Vague/unstable", "a3": "Shows consistency", "a5": "Strong ownership and follow-through" },
+      { "id": "service", "name": "Customer Service", "a1": "Defensive/blaming", "a3": "Polite resolution", "a5": "Empathetic + resolves quickly" },
+      { "id": "pace", "name": "Pace & Accuracy", "a1": "Gets overwhelmed", "a3": "Keeps up with support", "a5": "Fast, accurate, prioritizes well" },
+      { "id": "team", "name": "Teamwork", "a1": "Solo mindset", "a3": "Cooperative", "a5": "Proactively supports others" }
+    ]
+  },
+  "case": { "talk": [], "log": {}, "hr": {} },
+  "limits": { "max_q": 2, "ban": ["age", "religion", "medical", "family status"], "escal": ["self-harm", "violence"] },
+  "inst": ["Keep evaluation hidden.", "Use plain spoken language suitable for a phone screen."]
+}

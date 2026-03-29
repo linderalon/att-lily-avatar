@@ -1,0 +1,20 @@
+{
+  "v": "2",
+  "mode": "post_interview",
+  "org": { "n": "McDonald's", "tone": "upbeat, clear, practical" },
+  "role": { "id": "MCD-CREW-001", "t": "Crew Member", "loc": "Orlando, FL", "type": "part_time" },
+  "subj": { "id": "cand_33210", "name": "Casey Mitchell", "lang": "en" },
+  "mtg": { "mins": 5, "style": "Friendly and efficient." },
+  "eval": { "tag": "INTERNAL_OUTCOME_NOTE", "dims": [] },
+  "case": {
+    "type": "Other",
+    "talk": [
+      "Thanks again for interviewing. We’d like to move forward with an offer for the Crew Member role.",
+      "Before we finalize next steps, I want to confirm your availability for evenings and weekends.",
+      "I’ll send the written offer and onboarding steps through the careers portal."
+    ],
+    "log": { "pay": "Pay rate and start steps are in the written offer/onboarding message." },
+    "hr": { "name": "Hiring Team", "chan": "careers portal message" }
+  },
+  "limits": { "max_q": 2 }
+}

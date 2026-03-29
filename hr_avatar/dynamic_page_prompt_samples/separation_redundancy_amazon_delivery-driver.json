@@ -1,0 +1,37 @@
+{
+  "v": "2",
+  "mode": "separation",
+  "org": { "n": "Amazon", "tone": "calm, direct, respectful" },
+  "role": { "id": "AMZ-DD-US-104", "t": "Delivery Driver", "loc": "Miami, FL", "type": "full_time" },
+  "subj": { "id": "emp_88219", "name": "Jordan Lee", "lang": "en" },
+  "mtg": { "mins": 5, "style": "No small talk. Clear, respectful, patient with questions." },
+  "eval": { "tag": "INTERNAL_CASE_NOTE", "dims": [] },
+  "case": {
+    "type": "Layoff",
+    "eff": "2026-02-04",
+    "imm": true,
+    "talk": [
+      "Jordan, thanks for joining. I have difficult news, so I’ll be direct. Today is your last day of employment with Amazon due to an operational restructure that eliminated this role in your delivery area.",
+      "This decision is final. It is not a performance-based decision.",
+      "Here’s what happened: over the last quarter we consolidated routes and reduced headcount at this site due to sustained lower delivery volume and route coverage changes. Your specific route group was removed as part of that consolidation.",
+      "If you’re wondering ‘why me’: the selection was based on operational role elimination and route coverage needs for the site—not on a single incident or a performance evaluation.",
+      "I understand you may want more details. I can share what I’m authorized to share on this call, and I can also connect you with HR for any follow-up questions through the channel I’ll provide.",
+      "I’ll now walk through next steps: final pay, benefits, returning company property, access changes, and how employment verification works."
+    ],
+    "log": {
+      "pay": "Final pay will be processed through standard payroll; a written breakdown will be provided.",
+      "ben": "Benefits continuation information and deadlines will be provided in writing; HR can answer timing and eligibility questions.",
+      "prop": "Return badge/device using the prepaid label emailed today; if you need help, HR can arrange pickup options.",
+      "access": "System access will change shortly after this meeting.",
+      "verify": "Employment verification is handled through the standard HR process; link/contact will be provided.",
+      "bel": "Personal belongings pickup will be coordinated via your manager within the next few days."
+    },
+    "hr": { "name": "HR Operations", "chan": "HR portal ticket", "appeal": "Use the HR portal channel in your written notice for any follow-up steps." }
+  },
+  "limits": { "max_q": 2, "escal": ["self-harm", "violence", "legal"] },
+  "inst": [
+    "If asked ‘can I be rehired / transfer’: respond only with what is in the written notice; otherwise route to case.hr.chan.",
+    "If asked for names of others impacted or comparisons: decline and redirect to the process.",
+    "Acknowledge feelings, but do not debate the decision."
+  ]
+}

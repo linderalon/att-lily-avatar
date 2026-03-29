@@ -1,0 +1,17 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:InvokeModel",
+        "bedrock:InvokeModelWithResponseStream"
+      ],
+      "Resource": [
+        "arn:aws:bedrock:*::foundation-model/anthropic.claude-3-haiku-*",
+        "arn:aws:bedrock:*::foundation-model/anthropic.claude-3-5-haiku-*",
+        "arn:aws:bedrock:*::foundation-model/anthropic.claude-3-sonnet-*"
+      ]
+    }
+  ]
+}

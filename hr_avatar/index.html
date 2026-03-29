@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AT&T Seller Hub</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="hr-demo.css?v=1.0.26">
+</head>
+<body>
+    <div class="app">
+
+        <!-- Header -->
+        <header>
+            <div class="att-logo">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/AT%26T_logo_2016.svg" alt="AT&T" height="48">
+            </div>
+            <h1>Welcome to the AT&amp;T Seller Hub</h1>
+            <p>Your AI-powered sales training &amp; knowledge hub</p>
+        </header>
+
+        <!-- Main Avatar -->
+        <div class="avatar-hero">
+            <div class="avatar-hero-wave avatar-hero-wave-left"></div>
+            <div class="avatar-hero-wave avatar-hero-wave-right"></div>
+            <div id="avatar-container">
+                <iframe
+                    id="main-iframe"
+                    src="https://meet.avatar.us.kaltura.ai/68f91b1f8d6dc1fb0d87f65b/talk-to-agent?aiclid=awuJ0s1h&flow_id=agent-21"
+                    allow="camera https://meet.avatar.us.kaltura.ai; microphone https://meet.avatar.us.kaltura.ai; display-capture https://meet.avatar.us.kaltura.ai"
+                    sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                    style="width:100%;height:100%;border:none;border-radius:12px;"
+                ></iframe>
+            </div>
+        </div>
+
+        <!-- Main Avatar Transcript -->
+        <div class="transcript-panel">
+            <div class="transcript-header">
+                <h3>Conversation Transcript</h3>
+                <div class="transcript-actions">
+                    <button class="btn btn-secondary" id="main-download-btn" onclick="downloadTranscript('main')" disabled>Download TXT</button>
+                </div>
+            </div>
+            <div class="transcript-content" id="main-transcript-content">
+                <div class="transcript-empty">Conversation transcript will appear here...</div>
+            </div>
+        </div>
+
+        <!-- Knowledge Check Cards -->
+        <section class="knowledge-checks">
+            <h2>Product Knowledge Checks</h2>
+            <p class="section-subtitle">Test your product knowledge with an AI-powered quiz. Click a card to begin.</p>
+            <div class="cards-grid">
+
+                <div class="product-card" onclick="startCheck('wireless')">
+                    <div class="product-icon">&#128241;</div>
+                    <div class="product-badge badge-wireless">Wireless</div>
+                    <h3>AT&amp;T Wireless</h3>
+                    <p>5G plans, unlimited tiers, FirstNet, device deals &amp; competitive differentiators.</p>
+                    <button class="btn-check">Start Knowledge Check &#8594;</button>
+                </div>
+
+                <div class="product-card" onclick="startCheck('fiber')">
+                    <div class="product-icon">&#127760;</div>
+                    <div class="product-badge badge-fiber">Internet</div>
+                    <h3>AT&amp;T Fiber</h3>
+                    <p>Speed tiers, symmetrical speeds, no data caps, installation &amp; bundle savings.</p>
+                    <button class="btn-check">Start Knowledge Check &#8594;</button>
+                </div>
+
+                <div class="product-card" onclick="startCheck('tv')">
+                    <div class="product-icon">&#128250;</div>
+                    <div class="product-badge badge-tv">TV</div>
+                    <h3>AT&amp;T TV</h3>
+                    <p>DirecTV Stream packages, cloud DVR, NFL Sunday Ticket &amp; triple-play bundles.</p>
+                    <button class="btn-check">Start Knowledge Check &#8594;</button>
+                </div>
+
+            </div>
+        </section>
+
+    </div><!-- /.app -->
+
+    <!-- ── Knowledge Check Modal ────────────────────────────────────────── -->
+    <div id="check-modal" class="check-modal" onclick="handleModalClick(event)">
+        <div class="check-modal-content">
+            <div class="check-modal-header">
+                <div class="check-modal-title-row">
+                    <span id="check-modal-badge" class="product-badge"></span>
+                    <h3 id="check-modal-title">Knowledge Check</h3>
+                </div>
+                <button class="check-modal-close" onclick="closeCheck()">&#10005;</button>
+            </div>
+            <div class="check-modal-body">
+                <iframe
+                    id="check-iframe"
+                    allow="camera https://meet.avatar.us.kaltura.ai; microphone https://meet.avatar.us.kaltura.ai; display-capture https://meet.avatar.us.kaltura.ai"
+                    sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                    style="width:100%;height:100%;border:none;"
+                ></iframe>
+            </div>
+            <div class="transcript-panel check-transcript-panel">
+                <div class="transcript-header">
+                    <h3>Session Transcript</h3>
+                    <div class="transcript-actions">
+                        <button class="btn btn-secondary" id="check-download-btn" onclick="downloadTranscript('check')" disabled>Download TXT</button>
+                    </div>
+                </div>
+                <div class="transcript-content" id="check-transcript-content">
+                    <div class="transcript-empty">Transcript will appear here once the session begins...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Report Loading Overlay ────────────────────────────────────────── -->
+    <div id="report-loading" class="report-loading-overlay" style="display:none;">
+        <div class="report-loading-box">
+            <div class="spinner"></div>
+            <p>Analyzing your session&hellip;</p>
+            <small>Generating your personalized report</small>
+        </div>
+    </div>
+
+    <!-- ── Session Report Modal ──────────────────────────────────────────── -->
+    <div id="report-modal" class="report-modal" onclick="handleReportBackdrop(event)">
+        <div class="report-modal-content">
+            <div class="report-modal-header">
+                <div class="report-header-left">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/AT%26T_logo_2016.svg" alt="AT&T" height="26">
+                    <h3 id="report-modal-title">Session Report</h3>
+                </div>
+                <button class="check-modal-close" onclick="closeReport()">&#10005;</button>
+            </div>
+            <div class="report-modal-body" id="report-modal-body">
+                <!-- populated by JS -->
+            </div>
+            <div class="report-modal-footer">
+                <button class="btn btn-secondary" onclick="downloadReport()">&#11015; Download Report</button>
+                <button class="btn-check report-close-btn" onclick="closeReport()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ─── CONFIG ──────────────────────────────────────────────────────────────
+    var CHECK_AVATAR_URL = 'https://meet.avatar.us.kaltura.ai/695cd19880ea19bd1b816a08/talk-to-agent?aiclid=ShK7BV3X&flow_id=agent-87';
+    var PROXY_URL        = 'http://localhost:8090';
+
+    var CHECKS = {
+        wireless: {
+            title: 'AT&T Wireless Knowledge Check', badge: 'Wireless', badgeClass: 'badge-wireless',
+            dpp: {
+                inst: ['AT&T WIRELESS CHECK — Run a 5-question product knowledge assessment on AT&T Wireless.'],
+                product: 'AT&T Wireless',
+                mtg: { q_add: [
+                    'What are the AT&T Unlimited plan tiers and what are the key differences between them?',
+                    'What is AT&T 5G and what are two key selling points compared to the competition?',
+                    'What is FirstNet, who is it designed for, and why is it a competitive differentiator?',
+                    'Describe the current device trade-in deal and how you would present it to a customer.',
+                    'A customer says Verizon has better coverage in their area — how do you respond?'
+                ]}
+            }
+        },
+        fiber: {
+            title: 'AT&T Fiber Knowledge Check', badge: 'Internet', badgeClass: 'badge-fiber',
+            dpp: {
+                inst: ['AT&T FIBER CHECK — Run a 5-question product knowledge assessment on AT&T Fiber internet.'],
+                product: 'AT&T Fiber',
+                mtg: { q_add: [
+                    'What are the available AT&T Fiber speed tiers and their approximate monthly prices?',
+                    'What does symmetrical upload and download speed mean, and why should customers care?',
+                    'AT&T Fiber has no data caps — how do you use this as a selling point vs. cable competitors?',
+                    'Walk me through what a customer should expect during and after the Fiber installation.',
+                    'How would you pitch bundling AT&T Fiber with an AT&T Wireless plan, and what savings apply?'
+                ]}
+            }
+        },
+        tv: {
+            title: 'AT&T TV Knowledge Check', badge: 'TV', badgeClass: 'badge-tv',
+            dpp: {
+                inst: ['AT&T TV CHECK — Run a 5-question product knowledge assessment on AT&T TV and DirecTV Stream.'],
+                product: 'AT&T TV / DirecTV Stream',
+                mtg: { q_add: [
+                    'What are the four DirecTV Stream package tiers and the main channel differences between them?',
+                    'How does DirecTV Stream cloud DVR work and what are its storage limits?',
+                    'What is NFL Sunday Ticket, which package includes it, and how do you pitch it to a sports fan?',
+                    'How is DirecTV Stream different from traditional satellite DirecTV — what are the key advantages?',
+                    'How would you sell a triple-play bundle (Wireless + Fiber + TV) and what is the key value proposition?'
+                ]}
+            }
+        }
+    };
+
+    // ─── STATE ───────────────────────────────────────────────────────────────
+    var transcripts = { main: [], check: [] };
+    var activeIframe       = null;
+    var pendingPrompt      = null;
+    var activeCheckKey     = null;   // 'wireless' | 'fiber' | 'tv'
+    var lastReportData     = null;   // for download
+    var lastReportTitle    = '';
+
+    // ─── HELPERS ─────────────────────────────────────────────────────────────
+    function esc(s) {
+        var d = document.createElement('div');
+        d.textContent = s || '';
+        return d.innerHTML;
+    }
+    function timeNow() {
+        return new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    }
+    function addEntry(which, role, text) {
+        transcripts[which].push({ role: role, text: text, time: timeNow() });
+        var content = document.getElementById(which + '-transcript-content');
+        var empty   = content.querySelector('.transcript-empty');
+        if (empty) empty.remove();
+        var entry = document.createElement('div');
+        entry.className = 'transcript-entry ' + (role === 'You' ? 'user' : 'avatar');
+        entry.innerHTML = '<div class="role">' + esc(role) + '</div>'
+                        + '<div class="text">' + esc(text) + '</div>'
+                        + '<div class="time">' + timeNow() + '</div>';
+        content.appendChild(entry);
+        content.scrollTop = content.scrollHeight;
+        var btn = document.getElementById(which + '-download-btn');
+        if (btn) btn.disabled = false;
+    }
+    function downloadTranscript(which) {
+        var lines = transcripts[which].map(function(e){ return '['+e.time+'] '+e.role+': '+e.text; });
+        var blob = new Blob([lines.join('\n')], {type:'text/plain'});
+        var url  = URL.createObjectURL(blob);
+        var a = document.createElement('a'); a.href=url;
+        a.download = 'att-transcript-'+which+'-'+new Date().toISOString().slice(0,10)+'.txt';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // ─── KNOWLEDGE CHECK MODAL ───────────────────────────────────────────────
+    function startCheck(product) {
+        var check  = CHECKS[product];
+        var modal  = document.getElementById('check-modal');
+        var iframe = document.getElementById('check-iframe');
+        document.getElementById('check-modal-title').textContent = check.title;
+        var badge = document.getElementById('check-modal-badge');
+        badge.textContent = check.badge;
+        badge.className   = 'product-badge ' + check.badgeClass;
+        // Reset transcript
+        transcripts.check = [];
+        var c = document.getElementById('check-transcript-content');
+        c.innerHTML = '<div class="transcript-empty">Transcript will appear here once the session begins...</div>';
+        var btn = document.getElementById('check-download-btn');
+        if (btn) btn.disabled = true;
+        pendingPrompt  = JSON.stringify(check.dpp);
+        activeCheckKey = product;
+        iframe.src     = CHECK_AVATAR_URL;
+        activeIframe   = iframe;
+        modal.style.display = 'flex';
+    }
+    function closeCheck() {
+        var modal  = document.getElementById('check-modal');
+        var iframe = document.getElementById('check-iframe');
+        modal.style.display = 'none';
+        iframe.src    = 'about:blank';
+        activeIframe  = null;
+        pendingPrompt = null;
+    }
+    function handleModalClick(e) {
+        if (e.target === document.getElementById('check-modal')) closeCheck();
+    }
+
+    // ─── REPORT GENERATION ───────────────────────────────────────────────────
+    function triggerReport(source) {
+        // source: 'main' or 'check'
+        var tx = transcripts[source];
+        if (!tx || tx.length < 1) return; // nothing to analyze
+
+        var payload;
+        if (source === 'check' && activeCheckKey) {
+            var check = CHECKS[activeCheckKey];
+            payload = {
+                analysis_mode: 'knowledge_check',
+                product:   check.dpp.product,
+                questions: check.dpp.mtg.q_add,
+                transcript: tx.map(function(e){
+                    return { role: e.role === 'You' ? 'user' : 'assistant', content: e.text };
+                })
+            };
+            lastReportTitle = check.title + ' — Report';
+        } else {
+            payload = {
+                analysis_mode: 'general',
+                context: 'AT&T Seller Hub general sales training session',
+                transcript: tx.map(function(e){
+                    return { role: e.role === 'You' ? 'user' : 'assistant', content: e.text };
+                })
+            };
+            lastReportTitle = 'Sales Session Report';
+        }
+
+        // Close check modal first if applicable
+        if (source === 'check') closeCheck();
+
+        showReportLoading();
+
+        // Small delay so final transcript entries have time to arrive
+        setTimeout(function() {
+            fetch(PROXY_URL, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify(payload)
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(result){
+                hideReportLoading();
+                if (result.success) {
+                    lastReportData = result.summary;
+                    showReport(source, result.summary);
+                } else {
+                    alert('Report generation failed: ' + result.error);
+                }
+            })
+            .catch(function(err){
+                hideReportLoading();
+                console.error('Report error:', err);
+                alert('Could not reach the analysis proxy at ' + PROXY_URL + '. Is it running?');
+            });
+        }, 1500);
+    }
+
+    // ─── REPORT RENDERING ────────────────────────────────────────────────────
+    function gradeColor(grade) {
+        if (!grade) return '#8ba3bb';
+        if (grade[0] === 'A') return '#22c55e';
+        if (grade[0] === 'B') return '#009fdb';
+        if (grade[0] === 'C') return '#f59e0b';
+        if (grade[0] === 'D') return '#f97316';
+        return '#ef4444';
+    }
+
+    function renderCard(cls, icon, title, items) {
+        var html = '<div class="report-card report-card-' + cls + '">';
+        html += '<div class="report-card-header"><span>' + icon + '</span><h4>' + title + '</h4></div>';
+        html += '<ul class="report-card-list">';
+        if (!items || items.length === 0) {
+            html += '<li class="report-empty-item">None noted</li>';
+        } else {
+            items.forEach(function(item){
+                var text = typeof item === 'object' ? (item.topic || '') + (item.why ? ' — ' + item.why : '') + (item.priority ? ' <span class="priority-tag priority-'+item.priority+'">'+item.priority+'</span>' : '') : esc(item);
+                html += '<li>' + (typeof item === 'object' ? text : esc(item)) + '</li>';
+            });
+        }
+        html += '</ul></div>';
+        return html;
+    }
+
+    function showReport(source, data) {
+        var grade   = data.grade || '–';
+        var score   = data.overall_score || 0;
+        var color   = gradeColor(grade);
+        var product = data.product || data.session_type || 'Session';
+
+        document.getElementById('report-modal-title').textContent = lastReportTitle;
+
+        var html = '';
+
+        // ── Hero row (grade circle + summary) ──────────────────────────────
+        html += '<div class="report-hero">';
+        html += '<div class="report-grade-circle" style="border-color:'+color+';color:'+color+'">';
+        html += '<div class="report-grade-letter">'+esc(grade)+'</div>';
+        html += '<div class="report-grade-score">'+score+'<span>/100</span></div>';
+        html += '</div>';
+        html += '<div class="report-summary-block">';
+        html += '<div class="report-product-label">'+esc(product)+'</div>';
+        html += '<p class="report-summary-text">'+esc(data.summary||'')+'</p>';
+
+        // Readiness badge
+        if (data.readiness) {
+            var rMap = { ready_to_sell: ['badge-ready','✓ Ready to Sell'], needs_review: ['badge-review','⚠ Needs Review'], not_ready: ['badge-not-ready','✗ Not Ready'] };
+            var r = rMap[data.readiness] || ['badge-review', data.readiness];
+            html += '<span class="readiness-badge '+r[0]+'">'+r[1]+'</span>';
+        }
+        // Engagement / confidence
+        if (data.engagement || data.confidence) {
+            html += '<div class="report-meta-row">';
+            if (data.engagement) html += '<span class="meta-chip">Engagement: <strong>'+esc(data.engagement)+'</strong></span>';
+            if (data.confidence)  html += '<span class="meta-chip">Confidence: <strong>'+esc(data.confidence)+'</strong></span>';
+            html += '</div>';
+        }
+        html += '</div></div>'; // summary-block + hero
+
+        // ── 2×2 card grid ─────────────────────────────────────────────────
+        html += '<div class="report-grid">';
+        html += renderCard('strong',  '✅', 'Strong Spots',      data.strong_spots);
+        html += renderCard('weak',    '⚠️', 'Weak Spots',        data.weak_spots);
+        html += renderCard('improve', '📈', 'Areas to Improve',  data.areas_to_improve);
+        html += renderCard('study',   '📚', 'Study Suggestions', data.study_suggestions);
+        html += '</div>';
+
+        // ── Question breakdown ─────────────────────────────────────────────
+        if (data.question_breakdown && data.question_breakdown.length) {
+            html += '<div class="question-breakdown">';
+            html += '<h4>Question Breakdown</h4>';
+            data.question_breakdown.forEach(function(q, i) {
+                var qcls = q.quality === 'strong' ? 'q-strong' : q.quality === 'adequate' ? 'q-adequate' : 'q-weak';
+                var stars = '';
+                for (var s=1; s<=5; s++) stars += '<span class="star'+(s<=(q.score||0)?' star-on':'')+'">★</span>';
+                html += '<div class="question-item '+qcls+'">';
+                html += '<div class="question-header">';
+                html += '<span class="question-num">Q'+(i+1)+'</span>';
+                html += '<span class="question-label">'+esc(q.question_summary||'')+'</span>';
+                html += '<span class="question-stars">'+stars+'</span>';
+                html += '</div>';
+                if (q.feedback) html += '<div class="question-feedback">'+esc(q.feedback)+'</div>';
+                html += '</div>';
+            });
+            html += '</div>';
+        }
+
+        document.getElementById('report-modal-body').innerHTML = html;
+        document.getElementById('report-modal').style.display = 'flex';
+    }
+
+    function showReportLoading() {
+        document.getElementById('report-loading').style.display = 'flex';
+    }
+    function hideReportLoading() {
+        document.getElementById('report-loading').style.display = 'none';
+    }
+    function closeReport() {
+        document.getElementById('report-modal').style.display = 'none';
+    }
+    function handleReportBackdrop(e) {
+        if (e.target === document.getElementById('report-modal')) closeReport();
+    }
+    function downloadReport() {
+        if (!lastReportData) return;
+        var d = lastReportData;
+        var lines = [
+            '=== ' + lastReportTitle + ' ===',
+            'Grade: ' + (d.grade||'N/A') + '   Score: ' + (d.overall_score||0) + '/100',
+            '',
+            'SUMMARY', d.summary || '', '',
+            'STRONG SPOTS', (d.strong_spots||[]).map(function(x){return '• '+x;}).join('\n'), '',
+            'WEAK SPOTS', (d.weak_spots||[]).map(function(x){return '• '+x;}).join('\n'), '',
+            'AREAS TO IMPROVE', (d.areas_to_improve||[]).map(function(x){return '• '+x;}).join('\n'), '',
+            'STUDY SUGGESTIONS',
+            (d.study_suggestions||[]).map(function(s){
+                return typeof s === 'object' ? '• ['+s.priority+'] '+s.topic+': '+s.why : '• '+s;
+            }).join('\n')
+        ];
+        if (d.question_breakdown && d.question_breakdown.length) {
+            lines.push('', 'QUESTION BREAKDOWN');
+            d.question_breakdown.forEach(function(q,i){
+                lines.push('Q'+(i+1)+' ('+q.score+'/5, '+q.quality+'): '+q.question_summary);
+                if (q.feedback) lines.push('   → '+q.feedback);
+            });
+        }
+        var blob = new Blob([lines.join('\n')], {type:'text/plain'});
+        var url  = URL.createObjectURL(blob);
+        var a = document.createElement('a'); a.href=url;
+        a.download = 'att-report-'+new Date().toISOString().slice(0,10)+'.txt';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // ─── MESSAGE HANDLER ─────────────────────────────────────────────────────
+    // Route events by app state (activeIframe set = knowledge check is open)
+    // rather than e.source comparison, which is unreliable for cross-origin iframes.
+    window.addEventListener('message', function(e) {
+        var data = e.data;
+        if (!data || data.issuer !== 'eself-conversation-events') return;
+
+        var isCheck = activeIframe !== null;
+        var which   = isCheck ? 'check' : 'main';
+
+        // DPP injection — fire once on showing-agent when a prompt is pending
+        if (data.event === 'showing-agent' && pendingPrompt) {
+            var p = pendingPrompt, t = activeIframe;
+            pendingPrompt = null; // consume so it only fires once
+            setTimeout(function() {
+                if (t && t.contentWindow)
+                    t.contentWindow.postMessage({ type: 'eself-dynamic-prompt-message', content: p }, '*');
+            }, 500);
+        }
+
+        // Conversation ended → generate report
+        if (data.event === 'conversation-ended') {
+            triggerReport(which);
+            return;
+        }
+
+        // Transcript entries
+        if (data.event === 'agent-talked') {
+            var text = data.data && data.data.agentContent ? data.data.agentContent : data.data;
+            if (text && typeof text === 'string') addEntry(which, isCheck ? 'Trainer' : 'Avatar', text);
+        } else if (data.event === 'user-transcription') {
+            var text = data.data && data.data.userTranscription ? data.data.userTranscription : data.data;
+            if (text && typeof text === 'string') addEntry(which, 'You', text);
+        }
+    });
+    </script>
+</body>
+</html>

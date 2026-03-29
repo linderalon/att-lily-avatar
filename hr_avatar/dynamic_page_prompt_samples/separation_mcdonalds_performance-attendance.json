@@ -1,0 +1,36 @@
+{
+  "v": "2",
+  "mode": "separation",
+  "org": { "n": "McDonald's", "tone": "calm, direct, respectful" },
+  "role": { "id": "MCD-CREW-001", "t": "Crew Member", "loc": "Orlando, FL", "type": "part_time" },
+  "subj": { "id": "emp_77102", "name": "Jordan K.", "lang": "en" },
+  "mtg": { "mins": 5, "style": "Short sentences, patient, do not argue. Answer 'why/how' using approved points." },
+  "eval": { "tag": "INTERNAL_CASE_NOTE", "dims": [] },
+  "case": {
+    "type": "Performance",
+    "eff": "2026-02-04",
+    "imm": true,
+    "talk": [
+      "Jordan, thanks for joining. I’m going to be direct. Your employment is ending effective today due to attendance not meeting policy expectations, as documented in prior discussions.",
+      "This decision is final.",
+      "Here are the documented facts we’re basing this on: in the last 60 days there were three no-call/no-show shifts (Dec 18, Jan 9, Jan 28) and nine late arrivals greater than 15 minutes. Attendance expectations and the impact on the team were reviewed with you.",
+      "We took progressive steps before today: coaching on Dec 19, a written warning on Jan 10, and a final warning on Jan 29 with clear expectations going forward. After the final warning, there was another missed shift on Feb 2.",
+      "If you want to share your perspective, I can listen and document it, but the employment decision itself will not change in this meeting.",
+      "I’ll walk through next steps now: final pay timing, any benefits information if applicable, and how to collect personal items."
+    ],
+    "log": {
+      "pay": "Final pay will be handled through standard payroll; details will be provided in writing.",
+      "ben": "If any benefits apply, information and deadlines will be provided in writing; HR can answer questions.",
+      "prop": "Return any company items per instructions you’ll receive today (if applicable).",
+      "access": "If you have any system/app access, it will be disabled shortly after this meeting.",
+      "verify": "Employment verification is handled through the standard HR process; details will be provided.",
+      "bel": "Personal items onsite will be coordinated for pickup via the manager."
+    },
+    "hr": { "name": "HR Operations", "chan": "HR portal/ticket", "appeal": "If a review process applies, follow the steps in the written notice." }
+  },
+  "limits": { "max_q": 2, "escal": ["self-harm", "violence", "legal"] },
+  "inst": [
+    "If asked ‘why wasn’t I given another chance’: restate the documented progression and final warning.",
+    "If asked to debate the accuracy of dates: acknowledge and route dispute documentation to case.hr.chan; do not litigate on the call."
+  ]
+}

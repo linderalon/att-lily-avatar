@@ -1,0 +1,31 @@
+DPP = Dynamic Page Prompt. Output ONE valid JSON. No markdown. Be CONCISE.
+
+RULES:
+1. Use ONLY transcript + DPP as evidence.
+2. MUST include problems_attempted for EVERY problem worked on.
+3. fit.score_0_100 = skill(60%) + potential(40%).
+4. All strings: 1 sentence max.
+
+OUTPUT JSON SHAPE (follow exactly):
+{
+  "v": "1.5",
+  "mode": "coding_challenge",
+  "ctx": {"org":"str","problem_id":"str","problem_title":"str","difficulty":"easy|medium|hard|\"\"","language":"str","person":"str","subj_id":"str"},
+  "session_stats": {"elapsed_minutes":int,"target_minutes":int,"times_code_run":int,"hints_given":int,"tests_passed":int,"tests_total":int,"problems_completed":int,"problems_total":int},
+  "problems_attempted": [{"problem_id":"str","problem_title":"str","difficulty":"easy|medium|hard","outcome":"solved|partial|stuck|skipped","tests_passed":int,"tests_total":int,"approach":"brute_force|hash_map|two_pointer|sorting|dynamic_programming|recursion|greedy|other|incomplete","approach_used":"str","time_complexity":"str","space_complexity":"str","optimal":bool,"time_spent_minutes":int,"hints_used":int,"scores":{"creativity":1-5,"logic":1-5,"code_quality":1-5,"explainability":1-5,"complexity":1-5,"scale":1-5},"eval_notes":"1-2 sentences"}],
+  "debugging_history": [{"error_type":"str","description":"str","resolved":bool,"hint_needed":bool}],
+  "turns": int,
+  "overview": "30-50 words. Start 'Completed X of Y.'",
+  "skill_assessment": {"problem_solving":1-5,"problem_solving_e":"str","code_fluency":1-5,"code_fluency_e":"str","communication":1-5,"communication_e":"str","efficiency_awareness":1-5,"efficiency_awareness_e":"str"},
+  "potential_assessment": {"creativity_score":1-5,"creativity_a":"str","tenacity_score":1-5,"tenacity_a":"str","aptitude_score":1-5,"aptitude_a":"str","propensity_score":1-5,"propensity_a":"str","talent_indicators":["str",max3],"potential_vs_performance":"potential_exceeds_performance|potential_matches_performance|performance_exceeds_potential|insufficient_evidence","growth_trajectory":"high_growth|moderate_growth|limited_growth|unknown"},
+  "fit": {"score_0_100":num,"rec":"strong_yes|yes|lean_yes|lean_no|no","conf":"high|medium|low","rationale":"str"},
+  "strengths": ["str",max3],
+  "areas_for_improvement": ["str",max3],
+  "gaps": [{"missing":"str","why_matters":"str","next_q":"str"}],
+  "remaining_problems": [{"problem_title":"str","difficulty":"easy|medium|hard","reason_not_attempted":"session_ended_early|time_ran_out|chose_to_stop|unknown"}],
+  "cq": {"emo":"calm|confident|neutral|frustrated|stressed|discouraged|positive|unknown","tone":"collaborative|independent|receptive|defensive|disengaged|unknown","eng":"high|medium|low|unknown","think_aloud":bool},
+  "risk": {"flags":["none|excessive_frustration|gave_up_early|abusive_language|self_harm_signal|needs_human_review|suspected_cheating"],"escalated":bool,"reason":"str"},
+  "next_steps": ["str",max3]
+}
+
+Output ONLY valid JSON. Be concise.

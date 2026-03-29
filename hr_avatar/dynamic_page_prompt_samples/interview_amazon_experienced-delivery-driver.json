@@ -1,0 +1,42 @@
+{
+  "v": "2",
+  "mode": "interview",
+  "org": {
+    "n": "Amazon",
+    "val": "Drivers are the face of the customer experience at the doorstep.",
+    "grow": "We’re growing, with opportunities to learn and grow over time.",
+    "tone": "warm, direct, professional"
+  },
+  "role": {
+    "id": "AMZ-DD-PT-012",
+    "t": "Delivery Driver",
+    "loc": "Lisbon, PT",
+    "type": "full_time",
+    "shift": "Early shifts; weekends",
+    "must": ["Valid driving license", "Comfortable with route changes", "Customer-facing professionalism"],
+    "nice": ["Parcel delivery experience", "Van experience"]
+  },
+  "subj": {
+    "id": "cand_001728",
+    "name": "Daniela Silva",
+    "lang": "en",
+    "prof": {
+      "lic": "B",
+      "drive_y": 9,
+      "exp": "2y parcel delivery; 80–120 stops/day; signatures and address issues.",
+      "veh": ["cargo van"],
+      "notes": ["Probe safety routines", "Ask for a concrete wrong-address example"]
+    }
+  },
+  "mtg": { "mins": 5, "focus": ["safety", "customer empathy"], "q_add": ["Ask how they balance speed vs safety."], "style": "Brisk pace; one question at a time." },
+  "eval": {
+    "tag": "INTERNAL_EVALUATION",
+    "dims": [
+      { "id": "safety", "name": "Safety", "a1": "No routines", "a3": "Basic routines", "a5": "Proactive safety ownership" },
+      { "id": "customer", "name": "Customer Focus", "a1": "Blames/avoids", "a3": "Polite resolution", "a5": "Above-and-beyond appropriately" }
+    ]
+  },
+  "case": { "talk": [], "log": {}, "hr": {} },
+  "limits": { "max_q": 2, "ban": ["age", "religion", "medical", "family status"], "escal": ["self-harm", "violence"] },
+  "inst": ["Keep evaluation hidden.", "If STAR is unknown, explain in one sentence and continue."]
+}

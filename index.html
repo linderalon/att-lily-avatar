@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaltura Avatar SDK Demo</title>
+    <link rel="stylesheet" href="demo.css">
+</head>
+<body>
+    <div class="app">
+        <header>
+            <h1>Kaltura Avatar SDK</h1>
+            <p>Embed AI avatar conversations in any website</p>
+        </header>
+
+        <!-- Avatar Display -->
+        <div id="avatar-container"></div>
+
+        <!-- Prompt Input -->
+        <div class="controls">
+            <input type="text" id="prompt-input" placeholder="Type a message to send..." disabled>
+            <button id="send-btn" disabled>Send</button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="actions">
+            <button id="restart-btn" class="primary" disabled>Restart</button>
+            <button id="end-btn" class="danger" disabled>End</button>
+        </div>
+
+        <!-- Status Info -->
+        <div class="info">
+            <div class="info-item">
+                <label>Status:</label>
+                <span id="status">Loading...</span>
+            </div>
+            <div class="info-item">
+                <label>Avatar:</label>
+                <span id="avatar-name">--</span>
+            </div>
+            <div class="info-item">
+                <label>SDK:</label>
+                <span id="sdk-version">--</span>
+            </div>
+        </div>
+
+        <!-- Conversation Log -->
+        <div class="log">
+            <h3>Conversation</h3>
+            <div id="messages">
+                <div class="empty">Conversation will appear here...</div>
+            </div>
+        </div>
+
+        <!-- Events Log -->
+        <div class="events-panel">
+            <h3>Events</h3>
+            <div id="events" class="event-log"></div>
+        </div>
+    </div>
+
+    <script src="kaltura-avatar-sdk.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>

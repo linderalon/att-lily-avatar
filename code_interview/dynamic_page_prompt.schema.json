@@ -1,0 +1,318 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/code-interview/dynamic_page_prompt.schema.json",
+  "title": "Dynamic Page Prompt (DPP)",
+  "description": "Real-time context injected to the AI avatar during coding interview sessions. Contains problem info, live code state, execution results, and session progress.",
+  "type": "object",
+  "required": ["v", "mode", "mtg", "problem", "live_code", "session"],
+  "properties": {
+    "v": {
+      "type": "string",
+      "const": "2",
+      "description": "Schema version"
+    },
+    "mode": {
+      "type": "string",
+      "const": "coding_challenge",
+      "description": "Session mode identifier"
+    },
+    "user": {
+      "type": "object",
+      "description": "Candidate information for personalized interaction",
+      "properties": {
+        "first_name": {
+          "type": "string",
+          "description": "Candidate's first name (use to address them)"
+        },
+        "full_name": {
+          "type": "string",
+          "description": "Candidate's full name"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Candidate's email address"
+        }
+      }
+    },
+    "mtg": {
+      "type": "object",
+      "description": "Meeting/session configuration",
+      "required": ["mins"],
+      "properties": {
+        "mins": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Session duration in minutes"
+        }
+      }
+    },
+    "problem": {
+      "type": "object",
+      "description": "Current problem being solved",
+      "required": ["id", "title", "difficulty", "description"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique problem identifier (e.g., 'two-sum')"
+        },
+        "title": {
+          "type": "string",
+          "description": "Human-readable problem title"
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["easy", "medium", "hard"],
+          "description": "Problem difficulty level"
+        },
+        "description": {
+          "type": "string",
+          "description": "Full problem description"
+        },
+        "example": {
+          "type": "string",
+          "description": "Example input/output (e.g., 'nums = [2,7,11,15], target = 9 -> [0,1]')"
+        },
+        "optimal_complexity": {
+          "type": "string",
+          "description": "Expected optimal time and space complexity (e.g., 'O(n) time, O(n) space')"
+        }
+      }
+    },
+    "live_code": {
+      "type": "object",
+      "description": "Real-time state of the candidate's code",
+      "required": ["language", "current_code", "is_starter_code", "line_count", "code_observations"],
+      "properties": {
+        "language": {
+          "type": "string",
+          "enum": ["python", "javascript"],
+          "description": "Programming language selected"
+        },
+        "current_code": {
+          "type": "string",
+          "description": "Exact code the candidate has typed (updates in real-time)"
+        },
+        "is_starter_code": {
+          "type": "boolean",
+          "description": "True if code is unchanged from the starter template"
+        },
+        "line_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of lines in current code"
+        },
+        "code_observations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Auto-detected patterns in the code (e.g., 'Using a dictionary/hash map', 'Using nested loops')"
+        }
+      }
+    },
+    "last_execution": {
+      "type": ["object", "null"],
+      "description": "Results from the last code execution. Null until candidate clicks 'Run Code'.",
+      "properties": {
+        "tests_passed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of test cases that passed"
+        },
+        "tests_failed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of test cases that failed"
+        },
+        "total_tests": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of test cases"
+        },
+        "error_message": {
+          "type": ["string", "null"],
+          "description": "Runtime error message, or null if code ran without errors"
+        },
+        "output": {
+          "type": ["string", "null"],
+          "description": "Output produced by the code execution"
+        }
+      }
+    },
+    "session": {
+      "type": "object",
+      "description": "Session timing and progress tracking",
+      "required": [
+        "elapsed_seconds",
+        "elapsed_minutes",
+        "times_code_was_run",
+        "hints_given",
+        "phase",
+        "problem_completed",
+        "current_problem",
+        "total_problems",
+        "is_last_problem",
+        "action_when_done"
+      ],
+      "properties": {
+        "elapsed_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Seconds elapsed since session start"
+        },
+        "elapsed_minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Minutes elapsed since session start"
+        },
+        "times_code_was_run": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of times the candidate clicked 'Run Code'"
+        },
+        "hints_given": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of hints provided for current problem"
+        },
+        "phase": {
+          "type": "string",
+          "enum": ["START", "STUCK", "CODING", "DEBUG", "PARTIAL", "WRONG_OUTPUT", "COMPLETE"],
+          "description": "Current session phase based on code state and execution results"
+        },
+        "problem_completed": {
+          "type": "boolean",
+          "description": "True when all tests pass for current problem"
+        },
+        "current_problem": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Current problem number (1-indexed). Example: 1, 2, 3, or 4"
+        },
+        "total_problems": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Total number of problems in the session. FIXED value, never changes."
+        },
+        "is_last_problem": {
+          "type": "boolean",
+          "description": "PRE-CALCULATED: True only when current_problem equals total_problems"
+        },
+        "action_when_done": {
+          "type": "string",
+          "enum": ["SWITCH", "END"],
+          "description": "PRE-CALCULATED: Action to take when problem is completed. SWITCH = more problems remain, END = this is the last problem"
+        }
+      }
+    },
+    "next_problem": {
+      "type": ["object", "null"],
+      "description": "Info about the next problem in sequence. Null if no more problems.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Next problem's unique identifier"
+        },
+        "title": {
+          "type": "string",
+          "description": "Next problem's title"
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["easy", "medium", "hard"],
+          "description": "Next problem's difficulty"
+        }
+      }
+    },
+    "instruction_on_complete": {
+      "type": ["string", "null"],
+      "description": "Human-readable instruction for the avatar - ONLY present when session.phase is 'COMPLETE', otherwise null. Starts with 'SWITCH:' or 'END:' to indicate required action."
+    }
+  },
+  "$defs": {
+    "phase_descriptions": {
+      "description": "Session phase definitions",
+      "type": "object",
+      "properties": {
+        "START": {
+          "description": "Just joined, code unchanged from starter template, < 60 seconds elapsed"
+        },
+        "STUCK": {
+          "description": "Code unchanged from starter, 60+ seconds elapsed (candidate may need help)"
+        },
+        "CODING": {
+          "description": "Actively writing code, hasn't run yet"
+        },
+        "DEBUG": {
+          "description": "Code ran but threw an error (error_message is present)"
+        },
+        "PARTIAL": {
+          "description": "Some tests pass, but not all"
+        },
+        "WRONG_OUTPUT": {
+          "description": "Code runs without error, but 0 tests pass"
+        },
+        "COMPLETE": {
+          "description": "All tests pass for the CURRENT problem (check action_when_done for next step)"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "v": "2",
+      "mode": "coding_challenge",
+      "user": {
+        "first_name": "Alex",
+        "full_name": "Alex Johnson",
+        "email": "alex.johnson@example.com"
+      },
+      "mtg": { "mins": 10 },
+      "problem": {
+        "id": "two-sum",
+        "title": "Two Sum",
+        "difficulty": "easy",
+        "description": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.",
+        "example": "nums = [2,7,11,15], target = 9 -> [0,1]",
+        "optimal_complexity": "O(n) time, O(n) space"
+      },
+      "live_code": {
+        "language": "python",
+        "current_code": "def two_sum(nums, target):\n    seen = {}\n    for i, num in enumerate(nums):\n        diff = target - num\n        if diff in seen:\n            return [seen[diff], i]\n        seen[num] = i",
+        "is_starter_code": false,
+        "line_count": 8,
+        "code_observations": [
+          "Using a dictionary/hash map (good for O(n) solution)",
+          "Using enumerate for index tracking",
+          "Has a return statement"
+        ]
+      },
+      "last_execution": {
+        "tests_passed": 3,
+        "tests_failed": 0,
+        "total_tests": 3,
+        "error_message": null,
+        "output": "Output: [0, 1]\n\nAll test cases passed!"
+      },
+      "session": {
+        "elapsed_seconds": 180,
+        "elapsed_minutes": 3,
+        "times_code_was_run": 2,
+        "hints_given": 0,
+        "phase": "COMPLETE",
+        "problem_completed": true,
+        "current_problem": 1,
+        "total_problems": 4,
+        "is_last_problem": false,
+        "action_when_done": "SWITCH"
+      },
+      "next_problem": {
+        "id": "valid-palindrome",
+        "title": "Valid Palindrome",
+        "difficulty": "easy"
+      },
+      "instruction_on_complete": "SWITCH: This is problem 1 of 4. After verifying understanding, say \"Switching to the next challenge now.\" to proceed to Valid Palindrome."
+    }
+  ]
+}

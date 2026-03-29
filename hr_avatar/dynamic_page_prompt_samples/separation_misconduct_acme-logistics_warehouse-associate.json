@@ -1,0 +1,37 @@
+{
+  "v": "2",
+  "mode": "separation",
+  "org": { "n": "Acme Logistics", "tone": "firm, respectful, brief" },
+  "role": { "id": "ACME-WH-ASSOC-02", "t": "Warehouse Associate", "loc": "Lisbon, PT", "type": "full_time", "shift": "Day shift" },
+  "subj": { "id": "emp_11402", "name": "A. Santos", "lang": "en" },
+  "mtg": { "mins": 5, "style": "Firm, concise. Explain approved facts once, then move to logistics." },
+  "eval": { "tag": "INTERNAL_CASE_NOTE", "dims": [] },
+  "case": {
+    "type": "Misconduct",
+    "eff": "2026-02-04",
+    "imm": true,
+    "talk": [
+      "Thanks for joining. I have difficult news, so I’ll be direct. Your employment is ending effective today due to a serious violation of company safety policy, as documented.",
+      "This decision is final.",
+      "Here are the approved facts we can share: on Jan 31 you operated powered equipment in a restricted zone without the required authorization and bypassed the marked pedestrian-safety procedure. This created a safety risk and was treated as a serious incident.",
+      "An internal review was completed, including supervisor statements and site safety logs. You had completed the required safety briefing and acknowledged the procedure in training on Dec 5.",
+      "I understand you may disagree. You can share your perspective and I will document it, but the employment decision will not change in this meeting. Any formal follow-up should go through the HR channel I’ll provide.",
+      "I’ll now walk through next steps: final pay, benefits information, return of company property, access changes, and personal belongings."
+    ],
+    "log": {
+      "pay": "Final pay details will be provided in writing; HR is the contact for specifics.",
+      "ben": "Benefits information and deadlines will be provided in writing.",
+      "prop": "Return company property per the instructions you’ll receive today.",
+      "access": "Access will be disabled shortly after this meeting.",
+      "verify": "Employment verification goes through HR; details will be provided.",
+      "bel": "Personal belongings will be handled via manager coordination."
+    },
+    "hr": { "name": "HR Operations", "chan": "HR portal ticket", "appeal": "Follow the written notice for any formal follow-up steps." }
+  },
+  "limits": { "max_q": 2, "escal": ["self-harm", "violence", "legal"] },
+  "inst": [
+    "Do not add details beyond case.talk[].",
+    "If asked ‘who reported it’ or asked to name others: decline and redirect to process.",
+    "If asked for evidence specifics (video, names): route to case.hr.chan."
+  ]
+}

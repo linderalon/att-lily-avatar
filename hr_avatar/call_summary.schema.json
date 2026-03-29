@@ -1,0 +1,288 @@
+{
+  "type": "json_schema",
+  "json_schema": {
+    "name": "hr_avatar_summary_v4_1_compact",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "HR Avatar post-call structured summary.\n\nFILLING RULES (global):\n- Use ONLY: (1) the conversation transcript + (2) the Dynamic Page Prompt (DPP).\n- Be evidence-based. If not covered, mark as not_answered/unknown and add to gaps.\n- Never invent IDs: ctx.role_id must come from DPP.role.id (or \"\" if missing). ctx.subj_id must come from DPP.subj.id (or \"\" if missing).\n- If mode != interview: fit fields should be null/empty as instructed below.\n- Prefer short, factual phrasing. Avoid sensitive/protected data unless your policy explicitly allows it.",
+      "properties": {
+        "v": {
+          "type": "string",
+          "enum": ["4.1"],
+          "description": "Schema version. Must be exactly \"4.1\"."
+        },
+
+        "mode": {
+          "type": "string",
+          "enum": ["interview", "post_interview", "separation"],
+          "description": "Call mode. Must match DPP.mode."
+        },
+
+        "ctx": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Indexing fields derived from DPP.\nFILLING RULES:\n- org = DPP.org.n (or \"\" if missing)\n- role = DPP.role.t (or \"\" if missing)\n- role_id = DPP.role.id (or \"\" if missing)  [REQUIRED ALWAYS]\n- loc = DPP.role.loc (or \"\" if missing)\n- person = DPP.subj.name (or \"\" if missing)\n- subj_id = DPP.subj.id (or \"\" if missing) [REQUIRED ALWAYS]\nDo not infer these values from the transcript if DPP is available; prefer DPP.",
+          "properties": {
+            "org": { "type": "string", "description": "Company name. Set from DPP.org.n (or \"\")." },
+            "role": { "type": "string", "description": "Role title. Set from DPP.role.t (or \"\")." },
+            "role_id": { "type": "string", "description": "Role identifier. MUST be set from DPP.role.id (or empty string if missing)." },
+            "loc": { "type": "string", "description": "Role location. Set from DPP.role.loc (or \"\")." },
+            "person": { "type": "string", "description": "Candidate/employee display name. Set from DPP.subj.name (or \"\")." },
+            "subj_id": { "type": "string", "description": "Subject identifier. MUST be set from DPP.subj.id (or empty string if missing)." }
+          },
+          "required": ["org", "role", "role_id", "person", "subj_id"]
+        },
+
+        "star_analysis": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "STAR analysis block.\nFILLING RULES:\n- Populate for interview calls when a STAR story (or equivalent structured example) was discussed.\n- If the call did NOT include a STAR/example, set fields to clearly indicate \"not covered\" and reflect that gap in gaps[].\n- Keep content job-related and evidence-based.",
+              "properties": {
+                "summary": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "maxItems": 5,
+                  "description": "Up to 5 bullets summarizing the STAR example (Situation/Task/Action/Result). If no STAR: include one bullet \"not covered\"."
+                },
+                "ratings": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "STAR-specific red flags or concerns (facts only). If none, use an empty array."
+                },
+                "quality": {
+                  "anyOf": [
+                    { "type": "integer", "minimum": 1, "maximum": 5 },
+                    { "type": "null" }
+                  ],
+                  "description": "STAR Quality score (1–5) if a STAR/example was provided; otherwise null.\nGuidance: 1=vague/no ownership, 3=clear enough but limited detail, 5=clear ownership, concrete actions, measurable outcome."
+                },
+                "recommendation": {
+                  "anyOf": [
+                    { "type": "string", "enum": ["strong_yes", "yes", "lean_yes", "lean_no", "no"] },
+                    { "type": "null" }
+                  ],
+                  "description": "Recommendation derived specifically from the STAR/example quality and relevance. Use null if STAR not covered."
+                },
+                "confidence": {
+                  "anyOf": [
+                    { "type": "string", "enum": ["high", "medium", "low"] },
+                    { "type": "null" }
+                  ],
+                  "description": "Confidence in the STAR-based assessment only. Use null if STAR not covered."
+                },
+                "follow_ups": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "maxItems": 3,
+                  "description": "Up to 3 follow-up questions that would strengthen/validate the STAR evidence. If none, use empty array."
+                }
+              },
+              "required": ["summary", "ratings", "quality", "recommendation", "confidence", "follow_ups"]
+            },
+            {
+              "type": "null",
+              "description": "Use null when STAR analysis is not applicable (e.g., post_interview/separation) or was not attempted."
+            }
+          ],
+          "description": "STAR analysis. For mode=interview it should generally be populated (or explicitly indicate not covered). For non-interview modes, usually null."
+        },
+
+        "turns": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of back-and-forth exchanges (AI↔user pairs) in the call. If unknown, estimate conservatively."
+        },
+
+        "dpp_digest": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Minimal DPP context needed to interpret the summary.\nFILLING RULES:\n- mins = DPP.mtg.mins (or 0)\n- focus = DPP.mtg.focus (or [])\n- must = DPP.role.must (or [])\n- nice = DPP.role.nice (or [])\n- cv_provided = true iff DPP.subj.prof.cv_summary exists and is non-empty\n- role_id and subj_id MUST mirror ctx.role_id and ctx.subj_id exactly",
+          "properties": {
+            "mins": { "type": "integer", "minimum": 0, "description": "Meeting duration target from DPP.mtg.mins (or 0 if missing)." },
+            "focus": { "type": "array", "items": { "type": "string" }, "description": "Focus topics from DPP.mtg.focus (or [])." },
+            "must": { "type": "array", "items": { "type": "string" }, "description": "Must-have requirements from DPP.role.must (or [])." },
+            "nice": { "type": "array", "items": { "type": "string" }, "description": "Nice-to-have requirements from DPP.role.nice (or [])." },
+            "cv_provided": { "type": "boolean", "description": "true iff DPP.subj.prof.cv_summary exists and is non-empty; otherwise false." },
+            "role_id": { "type": "string", "description": "Must equal ctx.role_id." },
+            "subj_id": { "type": "string", "description": "Must equal ctx.subj_id." }
+          },
+          "required": ["mins", "focus", "must", "cv_provided", "role_id", "subj_id"]
+        },
+
+        "overview": {
+          "type": "string",
+          "description": "Concise internal narrative summary (80–200 words).\nFILLING RULES:\n- Summarize what was covered, strongest signals, and the main blockers/gaps.\n- Mention whether required must-haves were confirmed.\n- For interview mode: include a crisp top-line fit takeaway.\n- Avoid sensitive/protected personal data unless explicitly allowed in your policy."
+        },
+
+        "key_answers": {
+          "type": "array",
+          "description": "Answers to the most important questions asked OR required but missed.\nFILLING RULES:\n- Include entries for each critical must-have from dpp_digest.must.\n- Include critical role-flow questions (e.g., STAR/example; code walk-through if relevant; availability; license/safety for driving roles; SQL/analysis for analyst roles).\n- If a required question was missed, include it with status=not_answered, strength=unknown, a=\"not covered\".\n- Keep answers factual and job-related.\n- quote is optional and should be ≤12 words if used.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string", "description": "Stable short id, e.g., must_0, star, license, availability, code_walkthrough." },
+              "q": { "type": "string", "description": "Question asked (or intended if missed)." },
+              "a": { "type": "string", "description": "Answer summary. If missed, use \"not covered\"." },
+              "status": {
+                "type": "string",
+                "enum": ["answered", "partially_answered", "not_answered"],
+                "description": "answered=clear complete answer; partially_answered=some info but incomplete; not_answered=not covered."
+              },
+              "strength": {
+                "type": "string",
+                "enum": ["strong", "ok", "weak", "unknown"],
+                "description": "Strength of the answer based on evidence. Use unknown if not answered."
+              },
+              "quote": { "type": "string", "description": "Optional short supporting quote (≤12 words)." }
+            },
+            "required": ["id", "q", "a", "status", "strength"]
+          }
+        },
+
+        "fit": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Role fit (job-related only).\nFILLING RULES:\n- If mode=interview: populate score_0_100, rec, conf, and dims[] with evidence.\n- If mode!=interview: set score_0_100=null, rec=null, conf=null, dims=[]\n- dims[] should align to role requirements / focus (e.g., safety, customer empathy, code quality, analytical rigor). Evidence must be one sentence.",
+          "properties": {
+            "score_0_100": { "anyOf": [{ "type": "number", "minimum": 0, "maximum": 100 }, { "type": "null" }], "description": "Holistic fit score (interview only) or null (non-interview)." },
+            "rec": { "anyOf": [{ "type": "string", "enum": ["strong_yes", "yes", "lean_yes", "lean_no", "no"] }, { "type": "null" }], "description": "Recommendation (interview only) or null (non-interview)." },
+            "conf": { "anyOf": [{ "type": "string", "enum": ["high", "medium", "low"] }, { "type": "null" }], "description": "Confidence in fit assessment (interview only) or null (non-interview)." },
+            "dims": {
+              "type": "array",
+              "description": "Dimension ratings (1–5) with one-sentence evidence each. Empty array for non-interview modes.",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": { "type": "string", "description": "Dimension id (e.g., safety, customer, code, sql, rigor)." },
+                  "score_1_5": { "type": "integer", "minimum": 1, "maximum": 5, "description": "1=poor evidence/weak, 3=adequate, 5=excellent." },
+                  "e": { "type": "string", "description": "One-sentence evidence grounded in the conversation." }
+                },
+                "required": ["id", "score_1_5", "e"]
+              }
+            }
+          },
+          "required": ["score_0_100", "rec", "conf", "dims"]
+        },
+
+        "believability": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Credibility/consistency assessment vs CV and internal coherence.\nFILLING RULES:\n- If dpp_digest.cv_provided=false: set cv_consistency=no_cv; include signals=[\"insufficient_evidence\"]; mismatches=[]; explain in notes.\n- If CV exists: compare ONLY where comparable. List concrete mismatches (if any).\n- score_0_100 reflects credibility of claims (not likability).",
+          "properties": {
+            "score_0_100": { "type": "number", "minimum": 0, "maximum": 100, "description": "Credibility score based on consistency, specificity, and ability to explain." },
+            "cv_consistency": { "type": "string", "enum": ["consistent", "mixed", "inconsistent", "no_cv", "unknown"], "description": "Consistency vs provided CV summary." },
+            "mismatches": { "type": "array", "items": { "type": "string" }, "description": "Concrete mismatch statements. Empty array if none." },
+            "signals": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "answers_match_cv",
+                  "vague_or_evasive",
+                  "timeline_inconsistent",
+                  "overclaiming",
+                  "cannot_explain_own_work",
+                  "details_check_out",
+                  "insufficient_evidence"
+                ]
+              },
+              "description": "Pick applicable signals based on observed behavior and CV comparison."
+            },
+            "notes": { "type": "string", "description": "Short explanation of why believability was scored this way." }
+          },
+          "required": ["score_0_100", "cv_consistency", "mismatches", "signals", "notes"]
+        },
+
+        "gaps": {
+          "type": "array",
+          "description": "High-impact missing/unclear items.\nFILLING RULES:\n- Prioritize blockers: must-haves not confirmed, weak evidence, contradictions vs CV, missing STAR/example.\n- Each gap must include: what’s missing, why it matters, and the exact next question.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "missing": { "type": "string", "description": "What was not covered or remains unclear." },
+              "why_matters": { "type": "string", "description": "Impact on decision confidence or compliance/safety." },
+              "next_q": { "type": "string", "description": "Exact next question to ask to close the gap." }
+            },
+            "required": ["missing", "why_matters", "next_q"]
+          }
+        },
+
+        "cq": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Call quality/emotional signals.\nFILLING RULES:\n- Choose enums based on observable behavior. If unclear, use unknown.",
+          "properties": {
+            "emo": { "type": "string", "enum": ["calm", "neutral", "tense", "upset", "angry", "withdrawn", "positive", "unknown"], "description": "Observed emotional state." },
+            "tone": { "type": "string", "enum": ["cooperative", "neutral", "defensive", "hostile", "unknown"], "description": "Observed interaction tone." },
+            "eng": { "type": "string", "enum": ["high", "medium", "low", "unknown"], "description": "Engagement level based on responsiveness and effort." }
+          },
+          "required": ["emo", "tone", "eng"]
+        },
+
+        "risk": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Risk/escalation tracking.\nFILLING RULES:\n- flags must include \"none\" only if there are no other flags.\n- escalated=true if escalation happened or should happen (self-harm/violence/legal threat/abuse).\n- reason should be concise and factual.",
+          "properties": {
+            "flags": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "integrity_concern",
+                  "safety_concern",
+                  "abusive_language",
+                  "self_harm_signal",
+                  "violence_signal",
+                  "legal_threat",
+                  "needs_human_review"
+                ]
+              },
+              "description": "Select all applicable flags. Include \"none\" only if no other flags apply."
+            },
+            "escalated": { "type": "boolean", "description": "True if escalation occurred or is required." },
+            "reason": { "type": "string", "description": "Why escalation did/would occur (factual, brief)." }
+          },
+          "required": ["flags", "escalated", "reason"]
+        },
+
+        "next_steps": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "2–6 actionable next steps. Prefer including an owner hint (e.g., 'Recruiter: schedule follow-up to cover X')."
+        }
+      },
+      "required": [
+        "v",
+        "mode",
+        "ctx",
+        "turns",
+        "dpp_digest",
+        "overview",
+        "key_answers",
+        "fit",
+        "believability",
+        "gaps",
+        "cq",
+        "risk",
+        "next_steps"
+      ],
+      "allOf": [
+        {
+          "if": { "properties": { "mode": { "const": "interview" } } },
+          "then": {
+            "description": "For interview mode: star_analysis should generally be provided (or explicitly indicate not covered), and fit should be populated (not nulls).",
+            "required": ["star_analysis"]
+          }
+        }
+      ]
+    }
+  }
+}

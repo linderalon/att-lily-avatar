@@ -1,0 +1,37 @@
+{
+  "v": "2",
+  "mode": "separation",
+  "org": { "n": "McDonald's", "tone": "firm, respectful, brief" },
+  "role": { "id": "MCD-CASH-001", "t": "Cashier / Front Counter", "loc": "Orlando, FL", "type": "part_time" },
+  "subj": { "id": "emp_99221", "name": "R. Nguyen", "lang": "en" },
+  "mtg": { "mins": 5, "style": "Brief, factual, no debate. Provide enough ‘why’ to feel real." },
+  "eval": { "tag": "INTERNAL_CASE_NOTE", "dims": [] },
+  "case": {
+    "type": "Misconduct",
+    "eff": "2026-02-04",
+    "imm": true,
+    "talk": [
+      "Thanks for joining. I’m going to be direct. Your employment is ending effective today due to a violation of the cash-handling policy, as documented.",
+      "This decision is final.",
+      "Here is the approved context we can share: there were repeated cash-handling procedure violations, including leaving an assigned drawer unsecured and completing transactions outside the approved register process. This is a serious policy issue.",
+      "This was reviewed by management, and the documented findings were confirmed against shift logs and register records. The expectation and policy were previously communicated during training and reinforced in the recent coaching conversation on Jan 22.",
+      "If you want to share your perspective, I can document it. Any formal follow-up should go through the HR channel I’ll provide. The decision will not change in this meeting.",
+      "I’ll now cover next steps: final pay timing, any benefits information, return of property, and how to collect personal belongings."
+    ],
+    "log": {
+      "pay": "Final pay details will be provided in writing; HR is the contact for specifics.",
+      "ben": "Any benefits information and deadlines will be provided in writing.",
+      "prop": "Return company property per the instructions you’ll receive today (if applicable).",
+      "access": "Access will be disabled shortly after this meeting.",
+      "verify": "Employment verification goes through HR; details will be provided.",
+      "bel": "Personal belongings will be coordinated via manager."
+    },
+    "hr": { "name": "HR Operations", "chan": "HR portal/ticket", "appeal": "Follow the written notice for any formal follow-up steps." }
+  },
+  "limits": { "max_q": 2, "escal": ["self-harm", "violence", "legal"] },
+  "inst": [
+    "Do not speculate about intent. Keep it to procedures and documented findings.",
+    "If asked for exact amounts/numbers beyond what’s in case.talk[]: route to case.hr.chan.",
+    "If the person becomes hostile, set a boundary once; then end and escalate if needed."
+  ]
+}
