@@ -21,22 +21,15 @@ Environment variables:
 import json
 import os
 import sys
-import smtplib
 import requests
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
 
-# SMTP — set these env vars (or edit the defaults below) to enable email
-SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
-SMTP_PORT = int(os.environ.get('SMTP_PORT', '587'))
-SMTP_USER = os.environ.get('SMTP_USER', '')   # sender Gmail address
-SMTP_PASS = os.environ.get('SMTP_PASS', '')   # Gmail App Password
-SMTP_FROM = os.environ.get('SMTP_FROM', SMTP_USER)
+# Resend — https://resend.com  (free tier: 100 emails/day)
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 
 LITELLM_URL  = os.environ.get('LITELLM_URL', 'http://localhost:10006/v1/chat/completions')
 LITELLM_KEY  = os.environ.get('LITELLM_API_KEY', '')
@@ -132,6 +125,32 @@ def call_litellm(user_prompt, system_prompt, max_tokens=None):
         'output_tokens': data.get('usage', {}).get('completion_tokens', 0),
     }
     return summary, usage
+
+
+def call_litellm_text(user_prompt, system_prompt, max_tokens=800):
+    """Like call_litellm but returns raw text instead of parsed JSON."""
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {LITELLM_KEY}',
+    }
+    payload = {
+        'model': MODEL,
+        'messages': [
+            {'role': 'system', 'content': system_prompt},
+            {'role': 'user',   'content': user_prompt},
+        ],
+        'max_tokens': max_tokens,
+        'temperature': 0.5,
+    }
+    resp = requests.post(LITELLM_URL, json=payload, headers=headers, timeout=120)
+    resp.raise_for_status()
+    data = resp.json()
+    content = data['choices'][0]['message']['content'].strip()
+    usage = {
+        'input_tokens':  data.get('usage', {}).get('prompt_tokens', 0),
+        'output_tokens': data.get('usage', {}).get('completion_tokens', 0),
+    }
+    return content, usage
 
 # =============================================================================
 # REPORT ANALYSIS PROMPTS
@@ -326,6 +345,93 @@ def handle_general(body):
 
 
 # =============================================================================
+# CALL SUMMARY EMAIL (main avatar — plain prose, no JSON schema)
+# =============================================================================
+
+CALL_SUMMARY_PROMPT = """You are an AT&T Seller Hub AI assistant. You observed a conversation between an AT&T sales employee and an AI avatar trainer.
+
+Read the transcript and write a concise, professional call summary email body. Include:
+- A brief overview of what was discussed (2-3 sentences)
+- Key topics that came up during the session
+- Strengths you observed in how the employee handled the conversation
+- Suggested next steps and specific areas to focus on before their next session
+
+Write in plain, flowing prose — no bullet points, no headers, no markdown formatting. Just clean paragraphs a manager would be happy to read. Keep it under 250 words."""
+
+
+def handle_call_summary_email(body):
+    """Generate a plain-text call summary via LLM and send it via Resend."""
+    transcript = body.get('transcript', [])
+    to_email   = body.get('to_email', '').strip()
+
+    if not transcript:
+        return error_body('Missing: transcript', 'VALIDATION_ERROR')
+    if not to_email:
+        return error_body('Missing: to_email', 'VALIDATION_ERROR')
+    if not RESEND_API_KEY:
+        return error_body('RESEND_API_KEY not configured.', 'CONFIG_ERROR', 503)
+
+    user_prompt = f"## Transcript\n{format_transcript(transcript)}\n\nWrite the call summary."
+    summary_text, usage = call_litellm_text(user_prompt, CALL_SUMMARY_PROMPT, max_tokens=400)
+
+    html = build_plain_email_html(summary_text, to_email)
+
+    try:
+        resp = requests.post(
+            'https://api.resend.com/emails',
+            headers={
+                'Authorization': f'Bearer {RESEND_API_KEY}',
+                'Content-Type':  'application/json',
+            },
+            json={
+                'from':    'AT&T Seller Hub <onboarding@resend.dev>',
+                'to':      [to_email],
+                'subject': 'Your AT&T Seller Hub Call Summary',
+                'html':    html,
+            },
+            timeout=30
+        )
+        if resp.status_code in (200, 201):
+            print(f'[email] call summary sent to {to_email}')
+            return success_body({'sent': True, 'to': to_email}, usage)
+        else:
+            print(f'[email] Resend error {resp.status_code}: {resp.text}')
+            return error_body(f'Resend error: {resp.text}', 'RESEND_ERROR', 500)
+    except Exception as e:
+        print(f'[email] error: {e}')
+        return error_body(f'Failed to send email: {str(e)}', 'EMAIL_ERROR', 500)
+
+
+def build_plain_email_html(summary_text, to_email):
+    # Convert line breaks to paragraphs
+    paragraphs = ''.join(
+        f'<p style="margin:0 0 14px;font-size:15px;line-height:1.7;color:#2d3436;">{p.strip()}</p>'
+        for p in summary_text.split('\n') if p.strip()
+    )
+    return f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f0f7fb;font-family:'Helvetica Neue',Arial,sans-serif;">
+<div style="max-width:580px;margin:32px auto;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 4px 28px rgba(0,48,87,0.12);">
+
+  <div style="background:linear-gradient(90deg,#003057 0%,#0057b8 55%,#009fdb 100%);padding:26px 32px 22px;">
+    <div style="font-size:26px;font-weight:900;color:#fff;letter-spacing:-0.5px;">AT&amp;T</div>
+    <div style="color:rgba(255,255,255,0.82);font-size:13px;margin-top:3px;">Seller Hub &mdash; Call Summary</div>
+  </div>
+
+  <div style="padding:30px 32px 24px;">
+    {paragraphs}
+  </div>
+
+  <div style="background:#f0f7fb;padding:18px 32px;text-align:center;border-top:1px solid #c9dfe9;">
+    <p style="margin:0;font-size:12px;color:#8ba3bb;">Generated by AT&amp;T Seller Hub &middot; Powered by AI</p>
+    <p style="margin:5px 0 0;font-size:12px;color:#8ba3bb;">Sent to {to_email}</p>
+  </div>
+
+</div>
+</body></html>"""
+
+
+# =============================================================================
 # EMAIL HANDLER
 # =============================================================================
 
@@ -336,34 +442,37 @@ def handle_send_email(body):
 
     if not to_email:
         return error_body('Missing: to_email', 'VALIDATION_ERROR')
-    if not SMTP_USER or not SMTP_PASS:
-        return error_body(
-            'SMTP not configured. Set SMTP_USER and SMTP_PASS env vars.',
-            'CONFIG_ERROR', 503
-        )
+    if not RESEND_API_KEY:
+        return error_body('RESEND_API_KEY not configured.', 'CONFIG_ERROR', 503)
 
-    subject  = f'Your AT&T Seller Hub Session Summary — {product}'
-    html     = build_email_html(report, product, to_email)
+    subject = f'Your AT&T Seller Hub Session Summary — {product}'
+    html    = build_email_html(report, product, to_email)
 
     try:
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = subject
-        msg['From']    = SMTP_FROM or SMTP_USER
-        msg['To']      = to_email
-        msg.attach(MIMEText(html, 'html'))
-
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.ehlo()
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(SMTP_FROM or SMTP_USER, to_email, msg.as_string())
-
-        print(f'[email] sent to {to_email}')
-        return success_body({'sent': True, 'to': to_email}, {})
+        resp = requests.post(
+            'https://api.resend.com/emails',
+            headers={
+                'Authorization': f'Bearer {RESEND_API_KEY}',
+                'Content-Type':  'application/json',
+            },
+            json={
+                'from':    'AT&T Seller Hub <onboarding@resend.dev>',
+                'to':      [to_email],
+                'subject': subject,
+                'html':    html,
+            },
+            timeout=30
+        )
+        if resp.status_code in (200, 201):
+            print(f'[email] sent to {to_email}')
+            return success_body({'sent': True, 'to': to_email}, {})
+        else:
+            print(f'[email] Resend error {resp.status_code}: {resp.text}')
+            return error_body(f'Resend error: {resp.text}', 'RESEND_ERROR', 500)
 
     except Exception as e:
         print(f'[email] error: {e}')
-        return error_body(f'Failed to send email: {str(e)}', 'SMTP_ERROR', 500)
+        return error_body(f'Failed to send email: {str(e)}', 'EMAIL_ERROR', 500)
 
 
 def build_email_html(report, product, to_email):
@@ -522,7 +631,9 @@ class ProxyHandler(BaseHTTPRequestHandler):
 
         mode = body.get('analysis_mode')
         try:
-            if mode == 'send_email':
+            if mode == 'call_summary_email':
+                status, resp = handle_call_summary_email(body)
+            elif mode == 'send_email':
                 status, resp = handle_send_email(body)
             elif mode == 'knowledge_check':
                 status, resp = handle_knowledge_check(body)

@@ -271,17 +271,23 @@
         return new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
     }
     var SME_TRIGGERS = ['i need more help', 'can i speak to a subject matter expert'];
+    var smeTimers = {};  // track auto-hide timers per session
 
     function addEntry(which, role, text) {
         transcripts[which].push({ role: role, text: text, time: timeNow() });
         var content = document.getElementById(which + '-transcript-content');
         var empty   = content.querySelector('.transcript-empty');
         if (empty) empty.remove();
+        var isUser   = (role === 'You');
+        var iconText = isUser ? 'You' : 'AI';
         var entry = document.createElement('div');
-        entry.className = 'transcript-entry ' + (role === 'You' ? 'user' : 'avatar');
-        entry.innerHTML = '<div class="role">' + esc(role) + '</div>'
-                        + '<div class="text">' + esc(text) + '</div>'
-                        + '<div class="time">' + timeNow() + '</div>';
+        entry.className = 'transcript-entry ' + (isUser ? 'user' : 'avatar');
+        entry.innerHTML = '<div class="transcript-icon">' + iconText + '</div>'
+                        + '<div class="transcript-body">'
+                        +   '<div class="role">' + esc(role) + '</div>'
+                        +   '<div class="text">' + esc(text) + '</div>'
+                        +   '<div class="time">' + timeNow() + '</div>'
+                        + '</div>';
         content.appendChild(entry);
         content.scrollTop = content.scrollHeight;
         var btn = document.getElementById(which + '-download-btn');
@@ -298,16 +304,27 @@
 
     function showSMEButton(which) {
         var el = document.getElementById(which + '-sme-overlay');
-        if (el) el.style.display = 'flex';
+        if (!el) return;
+        el.style.display = 'flex';
+        // Auto-hide after 15 seconds
+        clearTimeout(smeTimers[which]);
+        smeTimers[which] = setTimeout(function() { hideSMEButton(which); }, 15000);
     }
 
     function hideSMEButton(which) {
         var el = document.getElementById(which + '-sme-overlay');
         if (el) el.style.display = 'none';
+        clearTimeout(smeTimers[which]);
+    }
+
+    function hideAllSMEButtons() {
+        hideSMEButton('main');
+        hideSMEButton('check');
     }
 
     function talkToSME() {
-        // Placeholder — replace the URL below with your SME meeting link or routing logic
+        hideAllSMEButtons();
+        // Placeholder — replace with your SME routing URL or contact flow
         alert('Connecting you to a Subject Matter Expert...\n\nReplace this with your SME routing URL or contact flow.');
     }
     function downloadTranscript(which) {
@@ -354,64 +371,80 @@
         if (e.target === document.getElementById('check-modal')) closeCheck();
     }
 
-    // ─── REPORT GENERATION ───────────────────────────────────────────────────
+    // ─── POST-CALL ACTIONS ───────────────────────────────────────────────────
+
     function triggerReport(source) {
-        // source: 'main' or 'check'
         var tx = transcripts[source];
-        if (!tx || tx.length < 1) return; // nothing to analyze
+        if (!tx || tx.length < 1) return;
 
-        var payload;
-        if (source === 'check' && activeCheckKey) {
+        var formatted = tx.map(function(e) {
+            return { role: e.role === 'You' ? 'user' : 'assistant', content: e.text };
+        });
+
+        if (source === 'main') {
+            // ── Main avatar: silent email summary + refresh iframe ──────────
+            refreshIframe('main-iframe');
+            if (!userEmail) return;
+            setTimeout(function() {
+                fetch(PROXY_URL, {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({
+                        analysis_mode: 'call_summary_email',
+                        to_email:   userEmail,
+                        transcript: formatted
+                    })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(res) {
+                    if (res.success) console.log('[email] call summary sent to', userEmail);
+                    else console.warn('[email] failed:', res.error);
+                })
+                .catch(function(err) { console.warn('[email] error:', err); });
+            }, 1500);
+
+        } else if (source === 'check' && activeCheckKey) {
+            // ── Knowledge check: visual report modal, no email ──────────────
             var check = CHECKS[activeCheckKey];
-            payload = {
-                analysis_mode: 'knowledge_check',
-                product:   check.dpp.product,
-                questions: check.dpp.mtg.q_add,
-                transcript: tx.map(function(e){
-                    return { role: e.role === 'You' ? 'user' : 'assistant', content: e.text };
-                })
-            };
             lastReportTitle = check.title + ' — Report';
-        } else {
-            payload = {
-                analysis_mode: 'general',
-                context: 'AT&T Seller Hub general sales training session',
-                transcript: tx.map(function(e){
-                    return { role: e.role === 'You' ? 'user' : 'assistant', content: e.text };
+            closeCheck(); // blanks iframe — fresh session on next open
+            showReportLoading();
+            setTimeout(function() {
+                fetch(PROXY_URL, {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({
+                        analysis_mode: 'knowledge_check',
+                        product:    check.dpp.product,
+                        questions:  check.dpp.mtg.q_add,
+                        transcript: formatted
+                    })
                 })
-            };
-            lastReportTitle = 'Sales Session Report';
+                .then(function(r) { return r.json(); })
+                .then(function(result) {
+                    hideReportLoading();
+                    if (result.success) {
+                        lastReportData = result.summary;
+                        showReport('check', result.summary);
+                    } else {
+                        alert('Report generation failed: ' + result.error);
+                    }
+                })
+                .catch(function(err) {
+                    hideReportLoading();
+                    alert('Could not reach the analysis proxy at ' + PROXY_URL + '. Is it running?');
+                });
+            }, 1500);
         }
+    }
 
-        // Close check modal first if applicable
-        if (source === 'check') closeCheck();
-
-        showReportLoading();
-
-        // Small delay so final transcript entries have time to arrive
-        setTimeout(function() {
-            fetch(PROXY_URL, {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body:    JSON.stringify(payload)
-            })
-            .then(function(r){ return r.json(); })
-            .then(function(result){
-                hideReportLoading();
-                if (result.success) {
-                    lastReportData = result.summary;
-                    showReport(source, result.summary);
-                    if (userEmail) sendSummaryEmail(result.summary, source);
-                } else {
-                    alert('Report generation failed: ' + result.error);
-                }
-            })
-            .catch(function(err){
-                hideReportLoading();
-                console.error('Report error:', err);
-                alert('Could not reach the analysis proxy at ' + PROXY_URL + '. Is it running?');
-            });
-        }, 1500);
+    function refreshIframe(id) {
+        var iframe = document.getElementById(id);
+        if (iframe) {
+            var src = iframe.src;
+            iframe.src = 'about:blank';
+            setTimeout(function() { iframe.src = src; }, 300);
+        }
     }
 
     // ─── REPORT RENDERING ────────────────────────────────────────────────────
@@ -550,32 +583,6 @@
         URL.revokeObjectURL(url);
     }
 
-    // ─── EMAIL SUMMARY ───────────────────────────────────────────────────────
-    function sendSummaryEmail(report, source) {
-        var product = (source === 'check' && activeCheckKey)
-            ? CHECKS[activeCheckKey].dpp.product
-            : (report.session_type || 'AT&T Sales Session');
-        fetch(PROXY_URL, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({
-                analysis_mode: 'send_email',
-                to_email: userEmail,
-                report:   report,
-                product:  product
-            })
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(res) {
-            if (res.success) {
-                console.log('[email] summary sent to', userEmail);
-            } else {
-                console.warn('[email] failed:', res.error);
-            }
-        })
-        .catch(function(err) { console.warn('[email] error:', err); });
-    }
-
     // ─── MESSAGE HANDLER ─────────────────────────────────────────────────────
     // Route events by app state (activeIframe set = knowledge check is open)
     // rather than e.source comparison, which is unreliable for cross-origin iframes.
@@ -596,8 +603,9 @@
             }, 500);
         }
 
-        // Conversation ended → generate report
+        // Conversation ended → hide SME button + generate report
         if (data.event === 'conversation-ended') {
+            hideAllSMEButtons();
             triggerReport(which);
             return;
         }
