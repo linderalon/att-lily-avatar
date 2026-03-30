@@ -84,27 +84,33 @@
             <div class="cards-grid">
 
                 <div class="product-card" onclick="startCheck('wireless')">
-                    <div class="product-icon">&#128241;</div>
-                    <div class="product-badge badge-wireless">Wireless</div>
-                    <h3>AT&amp;T Wireless</h3>
-                    <p>5G plans, unlimited tiers, FirstNet, device deals &amp; competitive differentiators.</p>
-                    <button class="btn-check">Start Knowledge Check &#8594;</button>
+                    <img class="product-card-img" src="https://sm.pcmag.com/pcmag_me/news/a/att-well-p/att-well-pay-you-if-an-outage-hits-your-wireless-fiber-servi_enwb.jpg" alt="AT&T Wireless">
+                    <div class="product-card-body">
+                        <div class="product-badge badge-wireless">Wireless</div>
+                        <h3>AT&amp;T Wireless</h3>
+                        <p>5G plans, unlimited tiers, FirstNet, device deals &amp; competitive differentiators.</p>
+                        <button class="btn-check">Start Knowledge Check &#8594;</button>
+                    </div>
                 </div>
 
                 <div class="product-card" onclick="startCheck('fiber')">
-                    <div class="product-icon">&#127760;</div>
-                    <div class="product-badge badge-fiber">Internet</div>
-                    <h3>AT&amp;T Fiber</h3>
-                    <p>Speed tiers, symmetrical speeds, no data caps, installation &amp; bundle savings.</p>
-                    <button class="btn-check">Start Knowledge Check &#8594;</button>
+                    <img class="product-card-img" src="https://i.ytimg.com/vi/tTQc3U39Fmk/maxresdefault.jpg" alt="AT&T Fiber">
+                    <div class="product-card-body">
+                        <div class="product-badge badge-fiber">Internet</div>
+                        <h3>AT&amp;T Fiber</h3>
+                        <p>Speed tiers, symmetrical speeds, no data caps, installation &amp; bundle savings.</p>
+                        <button class="btn-check">Start Knowledge Check &#8594;</button>
+                    </div>
                 </div>
 
-                <div class="product-card" onclick="startCheck('tv')">
-                    <div class="product-icon">&#128250;</div>
-                    <div class="product-badge badge-tv">TV</div>
-                    <h3>AT&amp;T TV</h3>
-                    <p>DirecTV Stream packages, cloud DVR, NFL Sunday Ticket &amp; triple-play bundles.</p>
-                    <button class="btn-check">Start Knowledge Check &#8594;</button>
+                <div class="product-card" onclick="startCheck('cc')">
+                    <img class="product-card-img" src="https://tbcdn.talentbrew.com/company/117/cms/img/hero-images/search-results/call-center-small.webp" alt="AT&T Contact Center">
+                    <div class="product-card-body">
+                        <div class="product-badge badge-cc">Contact Center</div>
+                        <h3>AT&amp;T Contact Center</h3>
+                        <p>CCaaS vs UCaaS, Five9 AI Insights, IVR vs AI Agents, ideal candidate profiling &amp; AHT reduction.</p>
+                        <button class="btn-check">Start Knowledge Check &#8594;</button>
+                    </div>
                 </div>
 
             </div>
@@ -178,6 +184,7 @@
 
     <script>
     // ─── CONFIG ──────────────────────────────────────────────────────────────
+    var MAIN_AVATAR_URL  = 'https://meet.avatar.us.kaltura.ai/68f91b1f8d6dc1fb0d87f65b/talk-to-agent?aiclid=awuJ0s1h&flow_id=agent-21';
     var CHECK_AVATAR_URL = 'https://meet.avatar.us.kaltura.ai/695cd19880ea19bd1b816a08/talk-to-agent?aiclid=ShK7BV3X&flow_id=agent-87';
     var PROXY_URL        = 'http://localhost:8090';
 
@@ -210,17 +217,17 @@
                 ]}
             }
         },
-        tv: {
-            title: 'AT&T TV Knowledge Check', badge: 'TV', badgeClass: 'badge-tv',
+        cc: {
+            title: 'AT&T Contact Center Knowledge Check', badge: 'Contact Center', badgeClass: 'badge-cc',
             dpp: {
-                inst: ['AT&T TV CHECK — Run a 5-question product knowledge assessment on AT&T TV and DirecTV Stream.'],
-                product: 'AT&T TV / DirecTV Stream',
+                inst: ['AT&T CC CHECK — Run a 5-question product knowledge assessment on AT&T Contact Center solutions.'],
+                product: 'AT&T Contact Center',
                 mtg: { q_add: [
-                    'What are the four DirecTV Stream package tiers and the main channel differences between them?',
-                    'How does DirecTV Stream cloud DVR work and what are its storage limits?',
-                    'What is NFL Sunday Ticket, which package includes it, and how do you pitch it to a sports fan?',
-                    'How is DirecTV Stream different from traditional satellite DirecTV — what are the key advantages?',
-                    'How would you sell a triple-play bundle (Wireless + Fiber + TV) and what is the key value proposition?'
+                    'What are two key indicators that a prospect is an ideal candidate for AT&T Contact Center?',
+                    'If a prospect currently uses Microsoft Teams or Hosted Voice Services (HVS), which specific contact center solution should you pitch — and why?',
+                    'How do you explain the difference between traditional IVR and modern AI Agents to a customer?',
+                    'A customer asks how they can track custom KPIs without expensive IT setup. What Five9 feature solves this, and how does it work?',
+                    'How does the AT&T Cloud Contact Center specifically reduce Average Handle Time (AHT) for live agents?'
                 ]}
             }
         }
@@ -382,8 +389,7 @@
         });
 
         if (source === 'main') {
-            // ── Main avatar: silent email summary + refresh iframe ──────────
-            refreshIframe('main-iframe');
+            // ── Main avatar: silent email summary ────────────────────────────
             if (!userEmail) return;
             setTimeout(function() {
                 fetch(PROXY_URL, {
@@ -407,7 +413,6 @@
             // ── Knowledge check: visual report modal, no email ──────────────
             var check = CHECKS[activeCheckKey];
             lastReportTitle = check.title + ' — Report';
-            closeCheck(); // blanks iframe — fresh session on next open
             showReportLoading();
             setTimeout(function() {
                 fetch(PROXY_URL, {
@@ -438,14 +443,6 @@
         }
     }
 
-    function refreshIframe(id) {
-        var iframe = document.getElementById(id);
-        if (iframe) {
-            var src = iframe.src;
-            iframe.src = 'about:blank';
-            setTimeout(function() { iframe.src = src; }, 300);
-        }
-    }
 
     // ─── REPORT RENDERING ────────────────────────────────────────────────────
     function gradeColor(grade) {
@@ -603,9 +600,23 @@
             }, 500);
         }
 
-        // Conversation ended → hide SME button + generate report
+        // Conversation ended → hide SME button, reload iframe, generate report
         if (data.event === 'conversation-ended') {
             hideAllSMEButtons();
+
+            if (isCheck) {
+                // Close check modal, reload check iframe in background
+                closeCheck();
+                setTimeout(function() {
+                    var f = document.getElementById('check-iframe');
+                    if (f) { f.src = 'about:blank'; setTimeout(function(){ f.src = CHECK_AVATAR_URL; }, 200); }
+                }, 600);
+            } else {
+                // Reload main iframe immediately with hardcoded URL
+                var f = document.getElementById('main-iframe');
+                if (f) { f.src = 'about:blank'; setTimeout(function(){ f.src = MAIN_AVATAR_URL; }, 500); }
+            }
+
             triggerReport(which);
             return;
         }

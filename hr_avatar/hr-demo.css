@@ -1410,17 +1410,22 @@ header p {
     color: #004680;
 }
 
+.badge-cc {
+    background: #003057;
+    color: #fff;
+}
+
 /* Card */
 .product-card {
     background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
-    padding: 28px 24px 24px;
+    padding: 0;
     cursor: pointer;
     transition: all var(--transition-fast);
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    overflow: hidden;
     box-shadow: var(--shadow-soft);
 }
 
@@ -1430,20 +1435,31 @@ header p {
     border-color: var(--accent-interview);
 }
 
-.product-icon {
-    font-size: 36px;
-    margin-bottom: 12px;
-    line-height: 1;
+/* Hero image at top of card */
+.product-card-img {
+    width: 100%;
+    height: 154px;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;
 }
 
-.product-card h3 {
+/* Content area below image */
+.product-card-body {
+    padding: 18px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.product-card-body h3 {
     font-size: 17px;
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 8px;
 }
 
-.product-card p {
+.product-card-body p {
     font-size: 13px;
     color: var(--text-secondary);
     line-height: 1.6;
