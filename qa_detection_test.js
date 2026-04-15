@@ -9,14 +9,18 @@ const USER_QUIZ_PHRASES = [
     'quiz me', 'test me', 'ask me', 'give me a quiz', 'give me a test',
     'can you quiz', 'can you test', "let's do a quiz", "let's do a test",
     'knowledge check', 'practice questions', 'challenge me',
-    'see how much i know', 'check my knowledge'
+    'see how much i know', 'check my knowledge',
+    'one question at a time', 'question at a time', 'question quiz',
+    'quiz on', 'test my knowledge', 'test my understanding'
 ];
 
 const EVAL_PHRASES = [
     'correct', "that's right", 'well done', 'good job', 'exactly right',
     'not quite', 'actually,', 'close, but', 'let me clarify', 'good answer',
     'next question', 'question 1', 'question 2', 'question 3', 'question 4', 'question 5',
-    "let's move on to", 'for the next question', 'final question'
+    "let's move on to", 'for the next question', 'final question',
+    'excellent', 'great job', "you're right", 'perfect answer', 'well answered',
+    'first question', 'second question', 'third question', 'fourth question', 'fifth question'
 ];
 
 const ASK_ME_NEGATIONS = ["don't ask me", "do not ask me", "won't ask me", "not ask me", "never ask me", "didn't ask me"];
@@ -213,13 +217,29 @@ test(
     true  // "ask me" + "test my knowledge" — expect GRADED
 );
 
+test(
+    '11. Real transcript: "give me a free question quiz, one question at a time" + Lily says "Excellent!" / "correct"',
+    [
+        ai("Hi there, I'm Lily. I'm the AT&T Learning Concierge and Product Knowledge Expert. How can I help you?"),
+        usr("Hey Lily, please give me a free question quiz, one question at a time that checks my knowledge on 5/9 contact center as a service."),
+        ai("Awesome! I\u2019d be absolutely thrilled to help you test your knowledge on AT&T Cloud Contact Center with Five9. Let\u2019s dive right in with your first question! What are the four pillars of AT&T Contact Center as a Service?"),
+        usr("The four pillars are integrate, engage, empower, and extend."),
+        ai("That's absolutely correct! You're off to a fantastic start! Ready for your second question? What are three key features of AT&T Contact Center as a Service?"),
+        usr("Yes."),
+        ai("Excellent! You've got the first one down. Now, for your second question: Can you name three key features of AT&T Contact Center as a Service?"),
+        usr("Yes, wireless connection, AI and mobility."),
+    ],
+    true  // real session — expect GRADED
+);
+
 // ── Results ───────────────────────────────────────────────────────────────────
 
+const total = 11;
 console.log(`\n${'─'.repeat(55)}`);
-console.log(`Results: ${passed}/10 passed, ${failed} failed`);
+console.log(`Results: ${passed}/${total} passed, ${failed} failed`);
 if (failed > 0) {
     console.log('\n⚠  Issues found — see FAIL lines above.');
     process.exit(1);
 } else {
-    console.log('\n All 10 tests passed.');
+    console.log(`\n All ${total} tests passed.`);
 }
