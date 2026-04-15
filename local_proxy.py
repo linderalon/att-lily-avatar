@@ -29,10 +29,10 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 # =============================================================================
 
 # Resend — https://resend.com  (free tier: 100 emails/day)
-RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', 're_p1Sq2G3g_AdTcxPJKyPfQJ343PGwCnhTU')
 
 LITELLM_URL  = os.environ.get('LITELLM_URL', 'http://localhost:10006/v1/chat/completions')
-LITELLM_KEY  = os.environ.get('LITELLM_API_KEY', '')
+LITELLM_KEY  = os.environ.get('LITELLM_API_KEY', 'sk-E3C_soePgQw_CQV-TX2OBw')
 MODEL        = os.environ.get('MODEL', 'claude-4-6-sonnet')
 MAX_TOKENS   = int(os.environ.get('MAX_TOKENS', '2048'))
 TEMPERATURE  = float(os.environ.get('TEMPERATURE', '0.3'))
@@ -158,8 +158,13 @@ def call_litellm_text(user_prompt, system_prompt, max_tokens=800):
 
 KNOWLEDGE_CHECK_SYSTEM_PROMPT = """You are an AT&T sales training evaluator. Analyze a knowledge check session transcript and output ONLY a valid JSON object. No markdown, no explanation.
 
+FIXED RULES — do not deviate:
+- "report_type" is always the string "graded" — never change this value.
+- "report_type" is not something you infer or decide; it is a constant for this report mode.
+
 OUTPUT SCHEMA:
 {
+  "report_type": "graded",
   "product": "<AT&T product assessed>",
   "overall_score": <0-100 integer>,
   "grade": "<A+|A|A-|B+|B|B-|C+|C|C-|D|F>",
@@ -176,22 +181,19 @@ OUTPUT SCHEMA:
   "readiness": "<ready_to_sell|needs_review|not_ready>"
 }"""
 
-GENERAL_ANALYSIS_SYSTEM_PROMPT = """You are an AT&T sales training evaluator. Analyze a sales training conversation and output ONLY a valid JSON object. No markdown, no explanation.
+GENERAL_ANALYSIS_SYSTEM_PROMPT = """You are an AT&T sales training assistant. Read the transcript below carefully and write a specific, grounded summary of exactly what was said.
 
-OUTPUT SCHEMA:
+STRICT RULES:
+- Reference the actual topics, products, and questions from this specific conversation — do not write generic filler.
+- Name the specific AT&T products or topics discussed (e.g. "AT&T Fiber", "Contact Center", "FirstNet").
+- Mention what the user asked and what key information the avatar provided.
+- 3-5 sentences of plain prose. No bullet points, no headers, no grading, no scores.
+- If the conversation was very short, summarise only what actually happened — do not pad.
+
+Output ONLY a valid JSON object:
 {
-  "session_type": "<short label for the type of session based on the transcript>",
-  "overall_score": <0-100 integer>,
-  "grade": "<A+|A|A-|B+|B|B-|C+|C|C-|D|F>",
-  "summary": "<2-3 sentence overview of the session>",
-  "strong_spots": ["<up to 4 specific strengths observed>"],
-  "weak_spots": ["<up to 4 specific gaps or weaknesses>"],
-  "areas_to_improve": ["<up to 4 concrete, actionable items>"],
-  "study_suggestions": [
-    {"topic": "<topic>", "why": "<why it matters>", "priority": "<high|medium|low>"}
-  ],
-  "engagement": "<high|medium|low>",
-  "confidence": "<high|medium|low>"
+  "report_type": "summary",
+  "summary": "<specific plain-text summary of this conversation>"
 }"""
 
 # =============================================================================
@@ -337,10 +339,10 @@ def handle_general(body):
     user_prompt = (
         (f"Session context: {context}\n\n" if context else '') +
         f"## Transcript\n{format_transcript(transcript)}\n\n"
-        f"Analyze this sales training session and output the JSON report."
+        f"Write a specific summary of the conversation above. Reference the actual topics and products mentioned."
     )
 
-    result, usage = call_litellm(user_prompt, GENERAL_ANALYSIS_SYSTEM_PROMPT, max_tokens=1200)
+    result, usage = call_litellm(user_prompt, GENERAL_ANALYSIS_SYSTEM_PROMPT, max_tokens=400)
     return success_body(result, usage)
 
 

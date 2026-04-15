@@ -9,7 +9,7 @@
     <meta http-equiv="Expires" content="0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="hr-demo.css?v=1.0.26">
 </head>
@@ -52,7 +52,7 @@
             <div id="avatar-container">
                 <iframe
                     id="main-iframe"
-                    src="https://meet.avatar.us.kaltura.ai/68f91b1f8d6dc1fb0d87f65b/talk-to-agent?aiclid=awuJ0s1h&flow_id=agent-21"
+                    src="https://meet.avatar.us.kaltura.ai/att_demo_safe/talk-to-agent?aiclid=wYKSTlPX&flow_id=agent-2"
                     allow="camera https://meet.avatar.us.kaltura.ai; microphone https://meet.avatar.us.kaltura.ai; display-capture https://meet.avatar.us.kaltura.ai"
                     sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
                     style="width:100%;height:100%;border:none;border-radius:12px;"
@@ -184,7 +184,7 @@
 
     <script>
     // ─── CONFIG ──────────────────────────────────────────────────────────────
-    var MAIN_AVATAR_URL  = 'https://meet.avatar.us.kaltura.ai/68f91b1f8d6dc1fb0d87f65b/talk-to-agent?aiclid=awuJ0s1h&flow_id=agent-21';
+    var MAIN_AVATAR_URL  = 'https://meet.avatar.us.kaltura.ai/att_demo_safe/talk-to-agent?aiclid=wYKSTlPX&flow_id=agent-2';
     var CHECK_AVATAR_URL = 'https://meet.avatar.us.kaltura.ai/695cd19880ea19bd1b816a08/talk-to-agent?aiclid=ShK7BV3X&flow_id=agent-87';
     var PROXY_URL        = 'http://localhost:8090';
 
@@ -378,6 +378,58 @@
         if (e.target === document.getElementById('check-modal')) closeCheck();
     }
 
+    // ─── QUIZ DETECTION ──────────────────────────────────────────────────────
+    // Two signals: (1) user explicitly asked to be quizzed/tested — strongest
+    // signal, triggers immediately. (2) avatar used evaluative language while
+    // asking multiple focused questions — catches cases where the avatar
+    // initiated a quiz unprompted.
+
+    var USER_QUIZ_PHRASES = [
+        'quiz me', 'test me', 'ask me', 'give me a quiz', 'give me a test',
+        'can you quiz', 'can you test', "let's do a quiz", "let's do a test",
+        'knowledge check', 'practice questions', 'challenge me',
+        'see how much i know', 'check my knowledge'
+    ];
+
+    var EVAL_PHRASES = [
+        'correct', "that's right", 'well done', 'good job', 'exactly right',
+        'not quite', 'actually,', 'close, but', 'let me clarify', 'good answer',
+        'next question', 'question 1', 'question 2', 'question 3', 'question 4', 'question 5',
+        "let's move on to", 'for the next question', 'final question'
+    ];
+
+    var ASK_ME_NEGATIONS = ["don't ask me", "do not ask me", "won't ask me", "not ask me", "never ask me", "didn't ask me"];
+
+    function isQuizSession(rawTranscript) {
+        // Signal 1: user explicitly asked to be quizzed or tested
+        var userRequested = rawTranscript.some(function(e) {
+            if (e.role !== 'You') return false;
+            var lower = (e.text || '').toLowerCase();
+            // Check all phrases except 'ask me' first
+            var otherPhrases = USER_QUIZ_PHRASES.filter(function(p) { return p !== 'ask me'; });
+            if (otherPhrases.some(function(p) { return lower.indexOf(p) !== -1; })) return true;
+            // 'ask me' only counts when not negated ("don't ask me", "not ask me", etc.)
+            if (lower.indexOf('ask me') !== -1) {
+                var negated = ASK_ME_NEGATIONS.some(function(n) { return lower.indexOf(n) !== -1; });
+                return !negated;
+            }
+            return false;
+        });
+        if (userRequested) return true;
+
+        // Signal 2: avatar used evaluative language + multiple short question turns
+        var evalCount = 0;
+        var shortQuestions = 0;
+        rawTranscript.forEach(function(e) {
+            if (e.role === 'You') return;
+            var text  = e.text || '';
+            var lower = text.toLowerCase();
+            if (EVAL_PHRASES.some(function(p) { return lower.indexOf(p) !== -1; })) evalCount++;
+            if (text.length < 300 && text.indexOf('?') !== -1) shortQuestions++;
+        });
+        return evalCount >= 2 && shortQuestions >= 3;
+    }
+
     // ─── POST-CALL ACTIONS ───────────────────────────────────────────────────
 
     function triggerReport(source) {
@@ -389,25 +441,65 @@
         });
 
         if (source === 'main') {
-            // ── Main avatar: silent email summary ────────────────────────────
-            if (!userEmail) return;
+            // ── Silent call-summary email ─────────────────────────────────────
+            if (userEmail) {
+                setTimeout(function() {
+                    fetch(PROXY_URL, {
+                        method:  'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body:    JSON.stringify({
+                            analysis_mode: 'call_summary_email',
+                            to_email:   userEmail,
+                            transcript: formatted
+                        })
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(res) {
+                        if (res.success) console.log('[email] call summary sent to', userEmail);
+                        else console.warn('[email] failed:', res.error);
+                    })
+                    .catch(function(err) { console.warn('[email] error:', err); });
+                }, 1500);
+            }
+
+            // ── Session report ────────────────────────────────────────────────
+            // Detect client-side whether the avatar ran a quiz. Evaluative
+            // language ("correct", "not quite", "next question", etc.) in
+            // avatar turns is the reliable signal — conversational questions
+            // alone are not enough.
+            var isQuiz = isQuizSession(tx);
+            lastReportTitle = isQuiz ? 'Session Knowledge Report' : 'Session Summary';
+            showReportLoading();
+            var capturedFormatted = formatted;
+            var requestBody = isQuiz
+                ? { analysis_mode: 'knowledge_check', product: 'AT&T Products', questions: [], transcript: capturedFormatted }
+                : { analysis_mode: 'general', transcript: capturedFormatted };
             setTimeout(function() {
                 fetch(PROXY_URL, {
                     method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify({
-                        analysis_mode: 'call_summary_email',
-                        to_email:   userEmail,
-                        transcript: formatted
-                    })
+                    body:    JSON.stringify(requestBody)
                 })
                 .then(function(r) { return r.json(); })
-                .then(function(res) {
-                    if (res.success) console.log('[email] call summary sent to', userEmail);
-                    else console.warn('[email] failed:', res.error);
+                .then(function(result) {
+                    hideReportLoading();
+                    if (result.success) {
+                        // Override report_type with our own decision — never trust the LLM's value
+                        result.summary.report_type = isQuiz ? 'graded' : 'summary';
+                        lastReportData  = result.summary;
+                        lastReportTitle = result.summary.session_type || lastReportTitle;
+                        var section = document.querySelector('.knowledge-checks');
+                        if (section) section.scrollIntoView({ behavior: 'smooth' });
+                        setTimeout(function() { showReport('main', result.summary); }, 500);
+                    } else {
+                        console.warn('[report] analysis failed:', result.error);
+                    }
                 })
-                .catch(function(err) { console.warn('[email] error:', err); });
-            }, 1500);
+                .catch(function(err) {
+                    hideReportLoading();
+                    console.warn('[report] proxy unreachable:', err);
+                });
+            }, 2500);
 
         } else if (source === 'check' && activeCheckKey) {
             // ── Knowledge check: visual report modal, no email ──────────────
@@ -446,24 +538,24 @@
 
     // ─── REPORT RENDERING ────────────────────────────────────────────────────
     function gradeColor(grade) {
-        if (!grade) return '#8ba3bb';
-        if (grade[0] === 'A') return '#22c55e';
+        if (!grade) return '#00388f';
+        if (grade[0] === 'A') return '#00388f';
         if (grade[0] === 'B') return '#009fdb';
-        if (grade[0] === 'C') return '#f59e0b';
-        if (grade[0] === 'D') return '#f97316';
-        return '#ef4444';
+        if (grade[0] === 'C') return '#f0a500';
+        if (grade[0] === 'D') return '#e07020';
+        return '#d94040';
     }
 
-    function renderCard(cls, icon, title, items) {
+    function renderCard(cls, title, items) {
         var html = '<div class="report-card report-card-' + cls + '">';
-        html += '<div class="report-card-header"><span>' + icon + '</span><h4>' + title + '</h4></div>';
+        html += '<div class="report-card-header"><h4>' + title + '</h4></div>';
         html += '<ul class="report-card-list">';
         if (!items || items.length === 0) {
             html += '<li class="report-empty-item">None noted</li>';
         } else {
             items.forEach(function(item){
-                var text = typeof item === 'object' ? (item.topic || '') + (item.why ? ' — ' + item.why : '') + (item.priority ? ' <span class="priority-tag priority-'+item.priority+'">'+item.priority+'</span>' : '') : esc(item);
-                html += '<li>' + (typeof item === 'object' ? text : esc(item)) + '</li>';
+                var text = typeof item === 'object' ? esc(item.topic || '') + (item.why ? ' — ' + esc(item.why) : '') + (item.priority ? ' <span class="priority-tag priority-'+item.priority+'">'+item.priority+'</span>' : '') : esc(item);
+                html += '<li>' + text + '</li>';
             });
         }
         html += '</ul></div>';
@@ -471,66 +563,69 @@
     }
 
     function showReport(source, data) {
-        var grade   = data.grade || '–';
-        var score   = data.overall_score || 0;
-        var color   = gradeColor(grade);
-        var product = data.product || data.session_type || 'Session';
-
         document.getElementById('report-modal-title').textContent = lastReportTitle;
-
         var html = '';
 
-        // ── Hero row (grade circle + summary) ──────────────────────────────
-        html += '<div class="report-hero">';
-        html += '<div class="report-grade-circle" style="border-color:'+color+';color:'+color+'">';
-        html += '<div class="report-grade-letter">'+esc(grade)+'</div>';
-        html += '<div class="report-grade-score">'+score+'<span>/100</span></div>';
-        html += '</div>';
-        html += '<div class="report-summary-block">';
-        html += '<div class="report-product-label">'+esc(product)+'</div>';
-        html += '<p class="report-summary-text">'+esc(data.summary||'')+'</p>';
+        if (data.report_type === 'summary') {
+            // ── Summary view: plain text only ─────────────────────────────────
+            html += '<p style="font-size:14.5px;line-height:1.8;color:#003057;margin:0;padding:4px 2px;">'
+                  + esc(data.summary || '')
+                  + '</p>';
 
-        // Readiness badge
-        if (data.readiness) {
-            var rMap = { ready_to_sell: ['badge-ready','✓ Ready to Sell'], needs_review: ['badge-review','⚠ Needs Review'], not_ready: ['badge-not-ready','✗ Not Ready'] };
-            var r = rMap[data.readiness] || ['badge-review', data.readiness];
-            html += '<span class="readiness-badge '+r[0]+'">'+r[1]+'</span>';
-        }
-        // Engagement / confidence
-        if (data.engagement || data.confidence) {
-            html += '<div class="report-meta-row">';
-            if (data.engagement) html += '<span class="meta-chip">Engagement: <strong>'+esc(data.engagement)+'</strong></span>';
-            if (data.confidence)  html += '<span class="meta-chip">Confidence: <strong>'+esc(data.confidence)+'</strong></span>';
+        } else {
+            // ── Graded view: knowledge check / quiz session ───────────────────
+            var grade   = data.grade || '–';
+            var score   = data.overall_score || 0;
+            var color   = gradeColor(grade);
+            var product = data.product || data.session_type || 'Session';
+
+            html += '<div class="report-hero">';
+            html += '<div class="report-grade-circle" style="background:'+color+'">';
+            html += '<div class="report-grade-letter">'+esc(grade)+'</div>';
+            html += '<div class="report-grade-score">'+score+'<span>/100</span></div>';
             html += '</div>';
-        }
-        html += '</div></div>'; // summary-block + hero
+            html += '<div class="report-summary-block">';
+            html += '<div class="report-product-label">'+esc(product)+'</div>';
+            html += '<p class="report-summary-text">'+esc(data.summary||'')+'</p>';
 
-        // ── 2×2 card grid ─────────────────────────────────────────────────
-        html += '<div class="report-grid">';
-        html += renderCard('strong',  '✅', 'Strong Spots',      data.strong_spots);
-        html += renderCard('weak',    '⚠️', 'Weak Spots',        data.weak_spots);
-        html += renderCard('improve', '📈', 'Areas to Improve',  data.areas_to_improve);
-        html += renderCard('study',   '📚', 'Study Suggestions', data.study_suggestions);
-        html += '</div>';
+            if (data.readiness) {
+                var rMap = { ready_to_sell: ['badge-ready','✓ Ready to Sell'], needs_review: ['badge-review','⚠ Needs Review'], not_ready: ['badge-not-ready','✗ Not Ready'] };
+                var r = rMap[data.readiness] || ['badge-review', data.readiness];
+                html += '<span class="readiness-badge '+r[0]+'">'+r[1]+'</span>';
+            }
+            if (data.engagement || data.confidence) {
+                html += '<div class="report-meta-row">';
+                if (data.engagement) html += '<span class="meta-chip">Engagement: <strong>'+esc(data.engagement)+'</strong></span>';
+                if (data.confidence)  html += '<span class="meta-chip">Confidence: <strong>'+esc(data.confidence)+'</strong></span>';
+                html += '</div>';
+            }
+            html += '</div></div>';
 
-        // ── Question breakdown ─────────────────────────────────────────────
-        if (data.question_breakdown && data.question_breakdown.length) {
-            html += '<div class="question-breakdown">';
-            html += '<h4>Question Breakdown</h4>';
-            data.question_breakdown.forEach(function(q, i) {
-                var qcls = q.quality === 'strong' ? 'q-strong' : q.quality === 'adequate' ? 'q-adequate' : 'q-weak';
-                var stars = '';
-                for (var s=1; s<=5; s++) stars += '<span class="star'+(s<=(q.score||0)?' star-on':'')+'">★</span>';
-                html += '<div class="question-item '+qcls+'">';
-                html += '<div class="question-header">';
-                html += '<span class="question-num">Q'+(i+1)+'</span>';
-                html += '<span class="question-label">'+esc(q.question_summary||'')+'</span>';
-                html += '<span class="question-stars">'+stars+'</span>';
-                html += '</div>';
-                if (q.feedback) html += '<div class="question-feedback">'+esc(q.feedback)+'</div>';
-                html += '</div>';
-            });
+            html += '<div class="report-grid">';
+            html += renderCard('strong',  'Strong Spots',      data.strong_spots);
+            html += renderCard('weak',    'Weak Spots',        data.weak_spots);
+            html += renderCard('improve', 'Areas to Improve',  data.areas_to_improve);
+            html += renderCard('study',   'Study Suggestions', data.study_suggestions);
             html += '</div>';
+
+            if (data.question_breakdown && data.question_breakdown.length) {
+                html += '<div class="question-breakdown">';
+                html += '<h4>Question Breakdown</h4>';
+                data.question_breakdown.forEach(function(q, i) {
+                    var qcls = q.quality === 'strong' ? 'q-strong' : q.quality === 'adequate' ? 'q-adequate' : 'q-weak';
+                    var stars = '';
+                    for (var s=1; s<=5; s++) stars += '<span class="star'+(s<=(q.score||0)?' star-on':'')+'">★</span>';
+                    html += '<div class="question-item '+qcls+'">';
+                    html += '<div class="question-header">';
+                    html += '<span class="question-num">Q'+(i+1)+'</span>';
+                    html += '<span class="question-label">'+esc(q.question_summary||'')+'</span>';
+                    html += '<span class="question-stars">'+stars+'</span>';
+                    html += '</div>';
+                    if (q.feedback) html += '<div class="question-feedback">'+esc(q.feedback)+'</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
         }
 
         document.getElementById('report-modal-body').innerHTML = html;
